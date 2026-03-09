@@ -1,6 +1,6 @@
 # 4D Toto App
 
-Singapore 4D and TOTO lottery ticket management application.
+Singapore 4D and TOTO lottery ticket management application
 
 ## Project Structure
 
