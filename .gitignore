@@ -1,3 +1,4 @@
-node_modules/ 
-serviceAccountKey.json 
-serviceAccountKey.json.json 
+node_modules/
+.env
+google-vision-key.json
+serviceAccountKey.json
