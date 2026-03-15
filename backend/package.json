@@ -12,14 +12,18 @@
   "type": "commonjs",
   "dependencies": {
     "@google-cloud/vision": "^5.3.4",
+    "@google/generative-ai": "^0.24.1",
     "axios": "^1.13.6",
+    "bcryptjs": "^3.0.3",
     "cheerio": "^1.2.0",
     "cors": "^2.8.6",
     "dotenv": "^17.3.1",
     "express": "^5.2.1",
     "firebase-admin": "^13.7.0",
+    "jsonwebtoken": "^9.0.3",
     "multer": "^2.1.1",
     "node-cron": "^4.2.1",
+    "sharp": "^0.34.5",
     "tesseract.js": "^7.0.0"
   }
 }

@@ -1,0 +1,35 @@
+const jwt = require('jsonwebtoken');
+
+const JWT_SECRET = process.env.JWT_SECRET || 'sglottery-secret-key-2026';
+
+/**
+ * Required auth middleware — rejects if no valid token.
+ */
+function requireAuth(req, res, next) {
+  const header = req.headers.authorization;
+  if (!header || !header.startsWith('Bearer ')) {
+    return res.status(401).json({ error: 'Authentication required. Please log in.' });
+  }
+  try {
+    const token = header.slice(7);
+    req.user = jwt.verify(token, JWT_SECRET);
+    next();
+  } catch {
+    res.status(401).json({ error: 'Session expired. Please log in again.' });
+  }
+}
+
+/**
+ * Optional auth middleware — attaches user if token present, continues either way.
+ */
+function optionalAuth(req, res, next) {
+  const header = req.headers.authorization;
+  if (header && header.startsWith('Bearer ')) {
+    try {
+      req.user = jwt.verify(header.slice(7), JWT_SECRET);
+    } catch { /* invalid token — continue as guest */ }
+  }
+  next();
+}
+
+module.exports = { requireAuth, optionalAuth };
