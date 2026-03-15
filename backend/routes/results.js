@@ -17,7 +17,9 @@ function filterByDays(results, days) {
   const cutoff = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
   return results.filter(r => {
     const [dd, mm, yyyy] = (r.drawDate || '').split('/');
-    return `${yyyy}-${mm}-${dd}` >= cutoff;
+    if (!dd || !mm || !yyyy) return false;
+    const fullYear = yyyy.length <= 2 ? String(2000 + parseInt(yyyy)) : yyyy;
+    return `${fullYear}-${mm}-${dd}` >= cutoff;
   });
 }
 const { compare4DTicket, compareTOTOTicket, classifyDrawDate, check4DNumber, checkTOTOCombination } = require('../services/matcher');

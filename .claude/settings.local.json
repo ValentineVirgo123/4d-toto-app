@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cat \"c:/Users/Valentine Virgo/Documents/4d-toto-app/mobile-app/app/\\(tabs\\)/upload.tsx\")"
+    ]
+  }
+}

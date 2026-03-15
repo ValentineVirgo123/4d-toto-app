@@ -1,0 +1,106 @@
+# SGLottery 4D/TOTO App — Cursor AI Rules
+
+## Project Overview
+Full-stack Singapore Pools lottery tracker with OCR ticket scanning, live results, and predictive analytics.
+
+## Tech Stack
+- **Backend**: Node.js + Express.js, Firebase Admin SDK, Firestore, Tesseract.js OCR
+- **Web**: Vite + React 19, React Router v7, Tailwind CSS v4 (@tailwindcss/vite), no component library
+- **Mobile**: Expo SDK 54, React Native, expo-router (file-based routing)
+- **Database**: Google Firestore (NoSQL)
+
+## Architecture Pattern (MVIP)
+All feature code follows this layer structure:
+```
+Entity     → /src/entities/       (TypeScript interfaces, pure types)
+Interactor → /src/interactors/    (data fetching, state via React hooks)
+Presenter  → /src/presenters/     (Context provider, combines interactor + local state)
+View       → /src/views/          (UI only, reads from presenter context)
+```
+Pages in `/src/pages/` (web) or `/app/(tabs)/` (mobile) are thin wrappers that import Views.
+
+## Design System / Color Tokens
+```
+Background:  #0d1117    (page bg)
+Surface:     #161b22    (cards, panels)
+Border:      #21262d
+4D accent:   #e53935    (Singapore red)
+TOTO accent: #7c3aed    (purple)
+Gold:        #f59e0b
+Cyan:        #22d3ee
+Text:        #f0f6fc
+Muted text:  #8b949e
+```
+Mobile uses a slightly deeper dark: bg `#010e1f`, surface `#011428`, border `#0a2448`.
+
+## Key Conventions
+
+### Backend
+- All routes in `backend/routes/`, services in `backend/services/`
+- Firebase initialized once in `backend/firebase.js`
+- Scraper uses Firestore as cache: checks cache → live scrape → mock fallback
+- Fingerprint deduplication for tickets: `gameType::serialNumber::drawDate::sortedNumbers`
+- Never use `orderBy` + `where` on different Firestore fields (requires composite index) — sort in memory instead
+
+### Web (web-app/)
+- Tailwind CSS v4: use `@tailwindcss/vite` plugin (NOT postcss). Import via `@import "tailwindcss"` in CSS.
+- Custom CSS classes defined in `src/index.css` (`.page`, `.card`, `.btn`, `.stat-chip`, etc.)
+- Mix Tailwind utilities with existing CSS classes — don't replace the design system
+- API calls go through `src/services/api.js` which prefixes `/api`
+
+### Mobile (mobile-app/)
+- TypeScript throughout. Entities in `src/entities/`, views in `src/views/`
+- Backend URL configured in `src/services/api.ts`; uses ngrok for local dev
+- ngrok header required: `ngrok-skip-browser-warning: true`
+- Use `SafeAreaView` with `edges={['top']}` on all screens
+- StyleSheet.create() for all styles — no inline style objects for repeated styles
+
+## Singapore Pools Domain Knowledge
+- **4D draw days**: Wednesday (3), Saturday (6), Sunday (0)
+- **TOTO draw days**: Monday (1), Thursday (4)
+- **4D prize tiers**: 1st, 2nd, 3rd, Starter (×10), Consolation (×10)
+- **4D bet types**: Ordinary, iBet (all permutations), 4D Roll (10 combos per R digit), System Entry (5→5, 6→15, 7→35 combos)
+- **TOTO prize groups**: Group 1 (6 match) through Group 7 (3+addl match)
+- **TOTO System 12**: 12 numbers = 6 primary + 6 supplementary = C(12,6) = 924 combinations
+- Date format used throughout: `DD/MM/YYYY`
+
+## API Endpoints
+```
+POST /api/tickets/upload        multipart image → OCR → Firestore
+GET  /api/tickets               list tickets (?gameType=4D|TOTO, ?limit=N)
+GET  /api/tickets/:id           single ticket
+DELETE /api/tickets/:id         remove ticket
+
+GET  /api/results/4d            ?date=DD/MM/YYYY | ?days=N | ?limit=N
+GET  /api/results/toto          ?date=DD/MM/YYYY | ?days=N | ?limit=N
+POST /api/results/4d            manual entry
+POST /api/results/toto          manual entry
+POST /api/results/check/:id     compare ticket vs official result
+GET  /api/results/lookup        ?game=4d&number=1234&date=... | ?game=toto&numbers=...
+
+GET  /api/predict               returns 3 model predictions + meta
+```
+
+## Firestore Collections
+```
+tickets        { gameType, drawDate, numbers[], serialNumber, betType, systemSize,
+                 combinationCount, amountPaid, imageUrl, uploadedAt, fingerprint,
+                 resultStatus, prizeTier, winMatches, resultChecked }
+results_4d     { drawDate, drawNumber, first, second, third, starters[], consolation[],
+                 source, scrapedAt }
+results_toto   { drawDate, drawNumber, winningNums[], addlNum, group1Prize,
+                 prizeGroups[], source, scrapedAt }
+```
+
+## Prediction Models
+1. **Digit Frequency** (`frequency`): Per-position digit frequency (4D) + top-12 number frequency (TOTO)
+2. **Hot & Cold** (`hot_cold`): Hottest 4D number + hot/cold System 12 (primary=hot, supplementary=cold)
+3. **Odd & Even / Jackpot Pattern** (`odd_even`): O/E digit pattern (4D) + historical jackpot mathematical profile (TOTO)
+
+## What NOT To Do
+- Do NOT use `orderBy().where()` in Firestore queries — sort in memory
+- Do NOT use PostCSS for Tailwind — use `@tailwindcss/vite` plugin only
+- Do NOT commit `.env` files or service account keys
+- Do NOT add features beyond what's asked
+- Do NOT use `router.push('/history')` in mobile — use `router.push('/tabs/history' as any)`
+- Do NOT add docstrings/comments to unchanged code

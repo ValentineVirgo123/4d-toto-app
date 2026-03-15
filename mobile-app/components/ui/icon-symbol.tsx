@@ -18,8 +18,12 @@ const MAPPING = {
   'paperplane.fill': 'send',
   'chevron.left.forwardslash.chevron.right': 'code',
   'chevron.right': 'chevron-right',
+  'arrow.up.circle.fill': 'file-upload',
+  'camera.fill': 'camera-alt',
+  'clock.fill': 'history',
+  'chart.bar.fill': 'bar-chart',
+  'star.fill': 'star',
 } as IconMapping;
-
 /**
  * An icon component that uses native SF Symbols on iOS, and Material Icons on Android and web.
  * This ensures a consistent look across platforms, and optimal resource usage.

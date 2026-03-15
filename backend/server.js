@@ -125,9 +125,21 @@ cron.schedule('0 23 * * *', async () => {
 
 // ── Start ──────────────────────────────────────────────────────────────────────
 const PORT = process.env.PORT || 3001;
-app.listen(PORT, () => {
+app.listen(PORT, async () => {
   console.log(`✅ SGLottery Backend running on port ${PORT}`);
   console.log('   Cron jobs: hourly result polling + daily result refresh');
-  // Seed Firestore with last 30 draws if the results collections are empty
-  ensureResultsPopulated();
+
+  // 1. Seed mock data immediately so the app has something to show
+  await ensureResultsPopulated();
+
+  // 2. Scrape real latest results from Singapore Pools in the background
+  console.log('[startup] Scraping latest results from Singapore Pools...');
+  Promise.all([
+    scrape4DResults(null).then(r => r
+      ? console.log(`[startup] 4D scraped: ${r.drawDate} Draw ${r.drawNumber} (${r.source})`)
+      : console.warn('[startup] 4D scrape returned no data — using mock')),
+    scrapeTOTOResults(null).then(r => r
+      ? console.log(`[startup] TOTO scraped: ${r.drawDate} Draw ${r.drawNumber} (${r.source})`)
+      : console.warn('[startup] TOTO scrape returned no data — using mock')),
+  ]).catch(err => console.error('[startup] Scrape error:', err.message));
 });

@@ -76,7 +76,10 @@ function parseTicketText(rawText) {
 
   if (gameType === '4D') {
     const seen  = new Set();
-    const lines = bodyText.split('\n');
+    // Search the full text (not just bodyText) for letter-labelled numbers —
+    // the A./B. prefix is strong enough to avoid false positives in serial lines.
+    const searchText = rawText;
+    const lines = searchText.split('\n');
 
     // Strategy 1 — alphabet-iteration rule (primary):
     // Tickets print numbers as "A. 5888", "B:4392", "C . 1234" etc.
@@ -87,13 +90,29 @@ function parseTicketText(rawText) {
       const letter = String.fromCharCode(code);
       // Pattern: word-boundary + letter + optional [.:space]* + 4 digits
       const re = new RegExp(`(?:^|[\\s,;])${letter}[\\s.:]{0,5}(\\d{4})\\b`, 'gm');
-      for (const m of bodyText.matchAll(re)) {
+      for (const m of searchText.matchAll(re)) {
         if (!seen.has(m[1])) { seen.add(m[1]); combinations.push(m[1]); }
+      }
+    }
+
+    // Strategy 1B — letter-anchor digit-squeeze:
+    // Handles OCR that inserts spaces inside numbers, e.g. "A. 5 888" → "5888".
+    // For each line starting with a capital letter + separator, strip all
+    // non-digit chars from the remainder and take the first 4 digits as the number.
+    for (const line of lines) {
+      const labelM = line.match(/^([A-Z])\s*[.:\s]\s*(.{1,20})/);
+      if (!labelM) continue;
+      const digits = labelM[2].replace(/[^0-9]/g, '');
+      if (digits.length >= 4) {
+        const num = digits.slice(0, 4);
+        if (!seen.has(num)) { seen.add(num); combinations.push(num); }
       }
     }
 
     // Strategy 2 — BIG/SML anchor (catches OCR-split lines where letter+number
     // end up on different lines, e.g. "B" on line N, "4392 BIG…" on line N+1).
+    // Scan ALL preceding lines (up to 5) so both A and B numbers are found even
+    // when multiple BIG/SML lines appear back-to-back.
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i];
       if (!/\bBIG\b|\bSML\b/i.test(line)) continue;
@@ -101,16 +120,14 @@ function parseTicketText(rawText) {
       for (const m of line.matchAll(/(?<![-/])\b(\d{4})\b(?![-/])/g)) {
         if (!seen.has(m[1])) { seen.add(m[1]); combinations.push(m[1]); }
       }
-      // Look back up to 3 lines for a lone 4-digit number
-      for (let back = 1; back <= 3; back++) {
+      // Look back up to 5 lines — do NOT break early; collect every 4-digit number found
+      for (let back = 1; back <= 5; back++) {
         if (i - back < 0) break;
         const prev = lines[i - back].trim();
-        const prevNums = [...prev.matchAll(/(?<![-/])\b(\d{4})\b(?![-/])/g)].map(m => m[1]);
-        if (prevNums.length > 0) {
-          for (const num of prevNums) {
-            if (!seen.has(num)) { seen.add(num); combinations.push(num); }
-          }
-          break;
+        // Stop scanning back once we hit a non-number line that isn't a letter label
+        if (prev && !/^\d{4}$/.test(prev) && !/^[A-Z]\s*[.:]/.test(prev) && back > 2) break;
+        for (const m of prev.matchAll(/(?<![-/])\b(\d{4})\b(?![-/])/g)) {
+          if (!seen.has(m[1])) { seen.add(m[1]); combinations.push(m[1]); }
         }
       }
     }
@@ -246,9 +263,14 @@ function parseTicketText(rawText) {
   }
 
   // ── Ticket Serial Number ───────────────────────────────────────────────────
+  // Serial always starts with a digit and sits right after the AM/PM timestamp.
   let serialNumber = null;
-  const serialMatch = rawText.match(/[A-Z]{1,3}[\s\-]?\d{6,12}/);
-  if (serialMatch) serialNumber = serialMatch[0].replace(/\s/g, '');
+  const afterTimestamp = rawText.match(/\d{1,2}:\d{2}\s*(?:AM|PM)([\s\S]{0,120})/i);
+  if (afterTimestamp) {
+    // Grab the first run of digits+dashes+spaces after the timestamp (handles both "846367-8-..." and "846367 8 ...")
+    const m = afterTimestamp[1].match(/(\d[\d\s\-]{8,})/);
+    if (m) serialNumber = m[1].trim().replace(/\s+/g, '');
+  }
 
   // ── Amount Paid ────────────────────────────────────────────────────────────
   let amount = null;

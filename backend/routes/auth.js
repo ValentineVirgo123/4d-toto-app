@@ -59,14 +59,14 @@ router.post('/login', async (req, res) => {
 
     const snap = await db.collection('users').where('email', '==', email.toLowerCase()).limit(1).get();
     if (snap.empty) {
-      return res.status(401).json({ error: 'Invalid email or password.' });
+      return res.status(404).json({ error: 'No account found with this email.' });
     }
 
     const doc  = snap.docs[0];
     const data = doc.data();
     const ok   = await bcrypt.compare(password, data.passwordHash);
     if (!ok) {
-      return res.status(401).json({ error: 'Invalid email or password.' });
+      return res.status(401).json({ error: 'Incorrect password.' });
     }
 
     const user = { id: doc.id, email: data.email, name: data.name };

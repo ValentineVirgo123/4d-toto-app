@@ -4,50 +4,238 @@
  * Falls back to cached Firestore data, then mock data for offline demo.
  */
 
-const axios   = require('axios');
-const cheerio = require('cheerio');
-const admin   = require('../firebase');
+const puppeteer = require('puppeteer');
+const admin     = require('../firebase');
 
 const db = admin.firestore();
-
-// ── Headers to mimic a browser ────────────────────────────────────────────────
-const HEADERS = {
-  'User-Agent':
-    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 ' +
-    '(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
-  'Accept-Language': 'en-SG,en;q=0.9',
-  Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-  Referer: 'https://www.singaporepools.com.sg/',
-  Origin:  'https://www.singaporepools.com.sg',
-};
 
 // ── Singapore Pools URLs ──────────────────────────────────────────────────────
 const SP_4D_URL   = 'https://www.singaporepools.com.sg/en/product/pages/4d_results.aspx';
 const SP_TOTO_URL = 'https://www.singaporepools.com.sg/en/product/pages/toto_results.aspx';
 
+// ── Puppeteer browser singleton ───────────────────────────────────────────────
+let _browser = null;
+async function getBrowser() {
+  if (!_browser || !_browser.connected) {
+    _browser = await puppeteer.launch({
+      headless: true,
+      args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage'],
+    });
+  }
+  return _browser;
+}
+
+// ── Parse date string in various SP formats → DD/MM/YYYY ──────────────────────
+const MONTHS = { jan:1,feb:2,mar:3,apr:4,may:5,jun:6,jul:7,aug:8,sep:9,oct:10,nov:11,dec:12 };
+function parseSpDate(text) {
+  if (!text) return null;
+  // "15 Mar 2026" or "Sunday, 15 Mar 2026"
+  const m = text.match(/\b(\d{1,2})\s+([A-Za-z]{3,9})\s+(\d{4})\b/);
+  if (m) {
+    const mon = MONTHS[m[2].slice(0,3).toLowerCase()];
+    if (mon) return `${m[1].padStart(2,'0')}/${String(mon).padStart(2,'0')}/${m[3]}`;
+  }
+  // DD/MM/YYYY or DD/MM/YY
+  const m2 = text.match(/\b(\d{1,2})\/(\d{1,2})\/(\d{2,4})\b/);
+  if (m2) {
+    const y = m2[3].length === 2 ? 2000 + parseInt(m2[3]) : parseInt(m2[3]);
+    return `${m2[1].padStart(2,'0')}/${m2[2].padStart(2,'0')}/${y}`;
+  }
+  return null;
+}
+
+// Extract the LATEST draw date from SP page.
+// Singapore Pools shows "Next Draw Date: 18 Mar" BEFORE "Draw Date: 15 Mar",
+// so we must skip any candidate date that is in the future.
+function extractLatestDrawDate(pageText) {
+  const todayEnd = new Date();
+  todayEnd.setHours(23, 59, 59, 999);
+
+  const parts = pageText.split(/Draw\s+Date/i);
+  for (let i = 1; i < parts.length; i++) {
+    const d = parseSpDate(parts[i]);
+    if (!d) continue;
+    const [dd, mm, yyyy] = d.split('/').map(Number);
+    const candidate = new Date(yyyy, mm - 1, dd);
+    if (candidate <= todayEnd) return d;   // first non-future date wins
+  }
+  return null;
+}
+
+// ── Puppeteer: scrape 4D results page ─────────────────────────────────────────
+async function puppeteerScrape4D(drawDate) {
+  const browser = await getBrowser();
+  const page    = await browser.newPage();
+  try {
+    await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36');
+
+    const url = drawDate
+      ? `${SP_4D_URL}?drawing-dt=${encodeURIComponent(drawDate)}`
+      : SP_4D_URL;
+
+    await page.goto(url, { waitUntil: 'networkidle2', timeout: 30000 });
+
+    await page.waitForFunction(
+      () => [...document.querySelectorAll('td, span, div, li')]
+              .some(el => /^\d{4}$/.test(el.textContent.trim())),
+      { timeout: 15000 }
+    ).catch(() => {});
+
+    const data = await page.evaluate(() => {
+      const bodyText = document.body.innerText;
+
+      // Log first 800 chars to help debug SP page structure
+      return {
+        preview:    bodyText.slice(0, 800),
+        title:      document.title,
+        drawNumber: (bodyText.match(/Draw\s*(?:No\.?|Number)\s*[:\-]?\s*(\d{3,5})/i) || [])[1] || null,
+        nums: (() => {
+          const seen = new Set();
+          const arr  = [];
+          document.querySelectorAll('td, span, div, li, p, strong, b').forEach(el => {
+            const t = el.textContent.trim();
+            if (/^\d{4}$/.test(t) && !seen.has(t)) { seen.add(t); arr.push(t); }
+          });
+          return arr;
+        })(),
+      };
+    });
+
+    console.log('[4D page title]', data.title);
+    console.log('[4D nums found]', data.nums.slice(0, 5));
+
+    // Extract the LATEST draw date (first date under "Draw Date" section, not "Next Draw")
+    const parsedDate = extractLatestDrawDate(data.preview) || drawDate;
+    const drawNumber = parsedDate ? estimate4DDrawNumber(parsedDate) : null;
+    console.log('[4D parsed date]', parsedDate, '→ Draw No.', drawNumber);
+
+    if (data.nums.length >= 3) {
+      return {
+        drawDate:    parsedDate,
+        drawNumber,
+        first:       data.nums[0],
+        second:      data.nums[1],
+        third:       data.nums[2],
+        starters:    data.nums.slice(3, 13),
+        consolation: data.nums.slice(13, 23),
+        source:      'live',
+      };
+    }
+    return null;
+  } catch (err) {
+    console.warn('[puppeteer] 4D scrape error:', err.message);
+    return null;
+  } finally {
+    await page.close();
+  }
+}
+
+// ── Puppeteer: scrape TOTO results page ───────────────────────────────────────
+async function puppeteerScrapeTOTO(drawDate) {
+  const browser = await getBrowser();
+  const page    = await browser.newPage();
+  try {
+    await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36');
+
+    const url = drawDate
+      ? `${SP_TOTO_URL}?drawing-dt=${encodeURIComponent(drawDate)}`
+      : SP_TOTO_URL;
+
+    await page.goto(url, { waitUntil: 'networkidle2', timeout: 30000 });
+
+    await page.waitForFunction(
+      () => [...document.querySelectorAll('td, span, div, li')]
+              .some(el => { const n = parseInt(el.textContent.trim()); return n >= 1 && n <= 49; }),
+      { timeout: 15000 }
+    ).catch(() => {});
+
+    const data = await page.evaluate(() => {
+      const bodyText = document.body.innerText;
+
+      const drawNoMatch = bodyText.match(/Draw\s*(?:No\.?|Number)\s*[:\-]?\s*(\d{3,5})/i);
+      const drawNumber  = drawNoMatch?.[1] || null;
+
+      const prizeMatch  = bodyText.match(/\$[\d,]+/);
+      const group1Prize = prizeMatch?.[0] || null;
+
+      const seen = new Set();
+      const nums = [];
+      document.querySelectorAll('td, span, div, li, p, strong, b').forEach(el => {
+        const t = el.textContent.trim();
+        const n = parseInt(t);
+        if (n >= 1 && n <= 49 && t === String(n) && !seen.has(n)) {
+          seen.add(n);
+          nums.push(n);
+        }
+      });
+
+      return { preview: bodyText.slice(0, 800), title: document.title, drawNumber, group1Prize, nums };
+    });
+
+    console.log('[TOTO page title]', data.title);
+    console.log('[TOTO nums found]', data.nums.slice(0, 8));
+
+    const parsedDate = extractLatestDrawDate(data.preview) || drawDate;
+    const drawNumber = parsedDate ? estimateTOTODrawNumber(parsedDate) : null;
+    console.log('[TOTO parsed date]', parsedDate, '→ Draw No.', drawNumber);
+
+    if (data.nums.length >= 7) {
+      return {
+        drawDate:    parsedDate,
+        drawNumber,
+        winningNums: data.nums.slice(0, 6),
+        addlNum:     data.nums[6],
+        group1Prize: data.group1Prize,
+        source:      'live',
+      };
+    }
+    return null;
+  } catch (err) {
+    console.warn('[puppeteer] TOTO scrape error:', err.message);
+    return null;
+  } finally {
+    await page.close();
+  }
+}
+
 // ── Mock data for offline demo / scraping fallback ────────────────────────────
 function getMock4DResults(drawDate) {
+  const r4 = () => String(Math.floor(Math.random() * 10000)).padStart(4, '0');
+  const date = drawDate || '07/03/2026';
   return {
-    drawDate:   drawDate || '07/03/2026',
-    drawNumber: '4518',
-    first:      '3829',
-    second:     '7164',
-    third:      '0547',
-    starters:   ['1234', '5678', '9012', '3456', '7890', '2345', '6789', '0123', '4567', '8901'],
-    consolation:['1111', '2222', '3333', '4444', '5555', '6666', '7777', '8888', '9999', '0000'],
-    source:     'mock',
+    drawDate:    date,
+    drawNumber:  estimate4DDrawNumber(date),
+    first:       r4(),
+    second:      r4(),
+    third:       r4(),
+    starters:    Array.from({ length: 10 }, r4),
+    consolation: Array.from({ length: 10 }, r4),
+    source:      'mock',
   };
 }
 
 function getMockTOTOResults(drawDate) {
+  const date = drawDate || '06/03/2026';
+  const nums = randTOTO7();
   return {
-    drawDate:    drawDate || '06/03/2026',
-    drawNumber:  '3926',
-    winningNums: [4, 15, 22, 33, 41, 46],
-    addlNum:     7,
-    jackpot:     '$3,200,000',
+    drawDate:    date,
+    drawNumber:  estimateTOTODrawNumber(date),
+    winningNums: nums.slice(0, 6).sort((a, b) => a - b),
+    addlNum:     nums[6],
     source:      'mock',
   };
+}
+
+// ── Normalise DD/MM/YY or DD/MM/YYYY → DD/MM/YYYY ────────────────────────────
+function normaliseDateStr(str) {
+  const p = parseSpDate(str);  // reuses existing parser
+  return p || str;
+}
+
+// True when the scraped result's date matches what was requested
+function dateMatches(requestedStr, resultDateStr) {
+  if (!requestedStr) return true;          // no specific date requested — always OK
+  return normaliseDateStr(requestedStr) === normaliseDateStr(resultDateStr);
 }
 
 // ── 4D Scraper ────────────────────────────────────────────────────────────────
@@ -55,44 +243,23 @@ function getMockTOTOResults(drawDate) {
 async function scrape4DResults(drawDate) {
   // 1. Check Firestore cache first
   if (drawDate) {
+    const normDate = normaliseDateStr(drawDate);
     const cached = await db.collection('results_4d')
-      .where('drawDate', '==', drawDate).limit(1).get();
+      .where('drawDate', '==', normDate).limit(1).get();
     if (!cached.empty) {
       return { ...cached.docs[0].data(), source: 'cache' };
     }
   }
 
-  // 2. Try live scrape
+  // 2. Try live scrape via Puppeteer
   try {
-    const resp = await axios.get(SP_4D_URL, { headers: HEADERS, timeout: 12000 });
-    const $    = cheerio.load(resp.data);
-
-    // Singapore Pools 4D result structure
-    const result = {};
-
-    // Draw date
-    const dateEl = $('[class*="drawDate"], .draw-date, .drawDate, h2, h3')
-      .filter((_, el) => /\d{2}\/\d{2}\/\d{4}/.test($(el).text()))
-      .first();
-    result.drawDate = dateEl.text().match(/(\d{2}\/\d{2}\/\d{4})/)?.[1] || drawDate;
-
-    // Prize numbers
-    const nums = [];
-    $('td, .prize-number, .winNum').each((_, el) => {
-      const t = $(el).text().trim();
-      if (/^\d{4}$/.test(t)) nums.push(t);
-    });
-
-    if (nums.length >= 3) {
-      result.first      = nums[0];
-      result.second     = nums[1];
-      result.third      = nums[2];
-      result.starters   = nums.slice(3, 13);
-      result.consolation= nums.slice(13, 23);
-      result.source     = 'live';
-
-      // Upsert: remove any existing record for this draw date before caching
-      result.source = 'live';
+    const result = await puppeteerScrape4D(drawDate);
+    if (result) {
+      // Guard: SP always returns its latest draw — reject if the date doesn't match
+      if (!dateMatches(drawDate, result.drawDate)) {
+        console.log(`[scraper] 4D date mismatch — requested ${drawDate}, got ${result.drawDate}. Returning null.`);
+        return null;
+      }
       const existSnap = await db.collection('results_4d')
         .where('drawDate', '==', result.drawDate).get();
       await Promise.all(existSnap.docs.map(d => d.ref.delete()));
@@ -100,14 +267,20 @@ async function scrape4DResults(drawDate) {
         ...result,
         scrapedAt: admin.firestore.FieldValue.serverTimestamp(),
       });
-
+      console.log('[scraper] 4D live scrape success:', result.drawDate);
       return result;
     }
   } catch (err) {
     console.warn('[scraper] 4D live scrape failed:', err.message);
   }
 
-  // 3. Fallback — only save mock if nothing is cached for today
+  // 3. If a specific date was requested and nothing matched → return null (no mock for wrong date)
+  if (drawDate) {
+    console.log(`[scraper] No 4D result found for ${drawDate}`);
+    return null;
+  }
+
+  // 4. No specific date — fallback to mock for default "latest" view
   console.log('[scraper] Using mock 4D data');
   const mock = getMock4DResults(drawDate);
   const todaySnap = await db.collection('results_4d')
@@ -125,37 +298,22 @@ async function scrape4DResults(drawDate) {
 
 async function scrapeTOTOResults(drawDate) {
   if (drawDate) {
+    const normDate = normaliseDateStr(drawDate);
     const cached = await db.collection('results_toto')
-      .where('drawDate', '==', drawDate).limit(1).get();
+      .where('drawDate', '==', normDate).limit(1).get();
     if (!cached.empty) {
       return { ...cached.docs[0].data(), source: 'cache' };
     }
   }
 
   try {
-    const resp = await axios.get(SP_TOTO_URL, { headers: HEADERS, timeout: 12000 });
-    const $    = cheerio.load(resp.data);
-
-    const result = {};
-
-    const dateEl = $('[class*="drawDate"], .draw-date, h2, h3')
-      .filter((_, el) => /\d{2}\/\d{2}\/\d{4}/.test($(el).text()))
-      .first();
-    result.drawDate = dateEl.text().match(/(\d{2}\/\d{2}\/\d{4})/)?.[1] || drawDate;
-
-    // TOTO winning numbers (1–49)
-    const nums = [];
-    $('td, .ball, .totoNum, .winning-number').each((_, el) => {
-      const n = parseInt($(el).text().trim());
-      if (n >= 1 && n <= 49) nums.push(n);
-    });
-
-    if (nums.length >= 7) {
-      result.winningNums = nums.slice(0, 6);
-      result.addlNum     = nums[6];
-      result.source      = 'live';
-
-      // Upsert
+    const result = await puppeteerScrapeTOTO(drawDate);
+    if (result) {
+      // Guard: SP always returns its latest draw — reject if the date doesn't match
+      if (!dateMatches(drawDate, result.drawDate)) {
+        console.log(`[scraper] TOTO date mismatch — requested ${drawDate}, got ${result.drawDate}. Returning null.`);
+        return null;
+      }
       const existSnap = await db.collection('results_toto')
         .where('drawDate', '==', result.drawDate).get();
       await Promise.all(existSnap.docs.map(d => d.ref.delete()));
@@ -163,10 +321,16 @@ async function scrapeTOTOResults(drawDate) {
         ...result,
         scrapedAt: admin.firestore.FieldValue.serverTimestamp(),
       });
+      console.log('[scraper] TOTO live scrape success:', result.drawDate);
       return result;
     }
   } catch (err) {
     console.warn('[scraper] TOTO live scrape failed:', err.message);
+  }
+
+  if (drawDate) {
+    console.log(`[scraper] No TOTO result found for ${drawDate}`);
+    return null;
   }
 
   console.log('[scraper] Using mock TOTO data');
@@ -184,11 +348,14 @@ async function scrapeTOTOResults(drawDate) {
 
 // ── Bulk Past Results (for Predictions + History) ─────────────────────────────
 
-// Parse DD/MM/YYYY → timestamp for sorting newest first
+// Parse DD/MM/YYYY or DD/MM/YY → timestamp for sorting newest first
 function parseDrawDate(str) {
   if (!str) return 0;
   const [dd, mm, yyyy] = str.split('/');
-  return new Date(`${yyyy}-${mm}-${dd}`).getTime() || 0;
+  if (!dd || !mm || !yyyy) return 0;
+  const year = parseInt(yyyy);
+  const fullYear = year < 100 ? 2000 + year : year;
+  return new Date(fullYear, parseInt(mm) - 1, parseInt(dd)).getTime() || 0;
 }
 
 async function getPast4DResults(limit = 50) {
@@ -277,23 +444,54 @@ function recentDrawTOTODates(n) {
   return dates;
 }
 
-// Base 4D draw number anchored to a known real draw (Draw 4518 = 07/03/2026 Fri — use offset)
-// 4D has ~3 draws/week ≈ 156/year. Draw 4518 was around early March 2026.
-function estimate4DDrawNumber(drawDateStr, baseDrawNo = 4518, baseDateStr = '07/03/2026') {
-  const t = parseDrawDate(drawDateStr);
-  const base = parseDrawDate(baseDateStr);
-  const diffDays = Math.round((t - base) / 86400000);
-  const diffDraws = Math.round(diffDays * 3 / 7);
-  return String(Math.max(1, baseDrawNo + diffDraws));
+// Count actual 4D draw days (Wed=3, Sat=6, Sun=0) between two timestamps
+function count4DDrawDays(fromMs, toMs) {
+  let count = 0;
+  const d = new Date(fromMs);
+  const target = new Date(toMs);
+  d.setHours(0, 0, 0, 0);
+  target.setHours(0, 0, 0, 0);
+  const step = fromMs <= toMs ? 1 : -1;
+  d.setDate(d.getDate() + step);
+  while (step === 1 ? d <= target : d >= target) {
+    const day = d.getDay();
+    if (day === 0 || day === 3 || day === 6) count++;
+    d.setDate(d.getDate() + step);
+  }
+  return count * step;
 }
 
-// TOTO draw number: ~2 draws/week. Draw 3926 around early March 2026.
-function estimateTOTODrawNumber(drawDateStr, baseDrawNo = 3926, baseDateStr = '06/03/2026') {
-  const t = parseDrawDate(drawDateStr);
+// Count actual TOTO draw days (Mon=1, Thu=4) between two timestamps
+function countTOTODrawDays(fromMs, toMs) {
+  let count = 0;
+  const d = new Date(fromMs);
+  const target = new Date(toMs);
+  d.setHours(0, 0, 0, 0);
+  target.setHours(0, 0, 0, 0);
+  const step = fromMs <= toMs ? 1 : -1;
+  d.setDate(d.getDate() + step);
+  while (step === 1 ? d <= target : d >= target) {
+    const day = d.getDay();
+    if (day === 1 || day === 4) count++;
+    d.setDate(d.getDate() + step);
+  }
+  return count * step;
+}
+
+// Anchor: Draw 4522 = Sat 15/03/2026 (verified from live scrape)
+function estimate4DDrawNumber(drawDateStr, baseDrawNo = 4522, baseDateStr = '15/03/2026') {
+  const t    = parseDrawDate(drawDateStr);
   const base = parseDrawDate(baseDateStr);
-  const diffDays = Math.round((t - base) / 86400000);
-  const diffDraws = Math.round(diffDays * 2 / 7);
-  return String(Math.max(1, baseDrawNo + diffDraws));
+  if (!t || !base) return String(baseDrawNo);
+  return String(Math.max(1, baseDrawNo + count4DDrawDays(base, t)));
+}
+
+// Anchor: Draw 3926 = Thu 05/03/2026
+function estimateTOTODrawNumber(drawDateStr, baseDrawNo = 3926, baseDateStr = '05/03/2026') {
+  const t    = parseDrawDate(drawDateStr);
+  const base = parseDrawDate(baseDateStr);
+  if (!t || !base) return String(baseDrawNo);
+  return String(Math.max(1, baseDrawNo + countTOTODrawDays(base, t)));
 }
 
 function generateMock4DHistory(count) {
@@ -337,36 +535,31 @@ function cutoffStr(days) {
   return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 }
 
-// Convert DD/MM/YYYY → YYYY-MM-DD for string comparison
+// Convert DD/MM/YYYY or DD/MM/YY → YYYY-MM-DD for string comparison
 function toISO(drawDate) {
   const [dd, mm, yyyy] = (drawDate || '').split('/');
-  return `${yyyy}-${mm}-${dd}`;
+  if (!dd || !mm || !yyyy) return '';
+  const year = parseInt(yyyy);
+  const fullYear = year < 100 ? 2000 + year : year;
+  return `${fullYear}-${String(parseInt(mm)).padStart(2,'0')}-${String(parseInt(dd)).padStart(2,'0')}`;
 }
 
-// ── Auto-populate Firestore with last 30 draws if no RECENT data exists ───────
+// ── Auto-populate Firestore with last 30 draws (always regenerate mock data) ──
 async function ensureResultsPopulated() {
   try {
-    const recentCutoff = cutoffStr(6); // last 7 days inclusive
-
     const [snap4d, snapTOTO] = await Promise.all([
       db.collection('results_4d').get(),
       db.collection('results_toto').get(),
     ]);
 
-    const hasRecent4D = snap4d.docs.some(d => toISO(d.data().drawDate) >= recentCutoff);
-    const hasRecentTOTO = snapTOTO.docs.some(d => toISO(d.data().drawDate) >= recentCutoff);
+    // Always clear and regenerate mock data so draw numbers are always correct.
+    // Real scraped data (source: 'live' or 'cache') is preserved.
+    console.log('[scraper] Regenerating mock history with correct draw numbers...');
 
-    // If both 4D and TOTO already have at least one draw in the last 7 days, keep existing data.
-    if (hasRecent4D && hasRecentTOTO) {
-      return;
-    }
-
-    console.log('[scraper] No recent draws in last 7 days — resetting mock history.');
-
-    // Clear ALL existing mock data before regenerating, so we don't keep stale February dates.
+    // Clear only mock records — preserve any real scraped data (source: 'live')
     const batch = db.batch();
-    snap4d.forEach(doc => batch.delete(doc.ref));
-    snapTOTO.forEach(doc => batch.delete(doc.ref));
+    snap4d.forEach(doc => { if (doc.data().source !== 'live') batch.delete(doc.ref); });
+    snapTOTO.forEach(doc => { if (doc.data().source !== 'live') batch.delete(doc.ref); });
     await batch.commit();
 
     // Regenerate fresh mock data from "today backwards"
