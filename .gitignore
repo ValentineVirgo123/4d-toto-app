@@ -2,3 +2,18 @@ node_modules/
 .env
 google-vision-key.json
 serviceAccountKey.json
+
+# PDF — too large for git, generate from USER_MANUAL.html instead
+*.pdf
+
+# Expo
+.expo/
+mobile-app/.expo/
+
+# Build outputs
+web-app/dist/
+mobile-app/dist/
+
+# OS files
+.DS_Store
+Thumbs.db
