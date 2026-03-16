@@ -420,20 +420,8 @@ router.post('/upload', optionalAuth, upload.single('ticket'), async (req, res) =
       }
     }
 
-    // ── Upload image to Firebase Storage ─────────────────────────────────
-    let imageUrl = null;
-    try {
-      const bucket = admin.storage().bucket();
-      const fileName = `tickets/${Date.now()}_${req.file.originalname}`;
-      const file = bucket.file(fileName);
-      await file.save(req.file.buffer, {
-        metadata: { contentType: req.file.mimetype },
-      });
-      await file.makePublic();
-      imageUrl = `https://storage.googleapis.com/${bucket.name}/${fileName}`;
-    } catch (imgErr) {
-      console.warn('[upload] Image storage skipped:', imgErr.message);
-    }
+    // ── Image storage disabled (Firebase Storage requires Blaze plan) ─────
+    const imageUrl = null;
 
     // ── Determine draw context (past vs future) ───────────────────────────
     const drawType = classifyDrawDate(extracted.drawDate);
