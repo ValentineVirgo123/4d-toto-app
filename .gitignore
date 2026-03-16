@@ -3,8 +3,9 @@ node_modules/
 google-vision-key.json
 serviceAccountKey.json
 
-# PDF — too large for git, generate from USER_MANUAL.html instead
+# Docs build outputs — regenerate locally with: node docs/build.js
 *.pdf
+docs/USER_MANUAL.html
 
 # Expo
 .expo/

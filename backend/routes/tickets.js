@@ -24,8 +24,10 @@ function parseTicketText(rawText) {
   const gameType = isTOTO ? 'TOTO' : '4D';
 
   // ── Normalise OCR date separators ─────────────────────────────────────────
+  // Also handle OCR misreading "/" as "I" or "l" between digit groups (date slashes)
   const normText = rawText
-    .replace(/(\d{1,2})\s*[\|\.]\s*(\d{1,2})\s*[\|\.]\s*(\d{2,4})/g, '$1/$2/$3');
+    .replace(/(\d{1,2})\s*[\|\.]\s*(\d{1,2})\s*[\|\.]\s*(\d{2,4})/g, '$1/$2/$3')
+    .replace(/\b(\d{1,2})[Il](\d{1,2})[Il](\d{2,4})\b/g, '$1/$2/$3');
 
   // ── Purchase date: the timestamp line (DD/MM/YY HH:MM AM/PM) ──────────────
   // This appears directly below the DRAW line on Singapore Pools tickets.
@@ -35,10 +37,19 @@ function parseTicketText(rawText) {
   const ticketPurchaseDate = purchaseTsMatch ? purchaseTsMatch[1] : null;
 
   // ── Draw Date ──────────────────────────────────────────────────────────────
-  // Priority 1: from the DRAW line only (no newline crossing)
+  // Priority 1: from the DRAW line — try multiple patterns for OCR noise tolerance
   const drawLineMatch =
+    // DRAW + date on the same line
     normText.match(/DRAW[^\n]{0,30}?(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4})/i) ||
-    normText.match(/(?:MON|TUE|WED|THU|FRI|SAT|SUN)[^\n]{0,15}(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4})/i);
+    // Day name + date on the same line (non-greedy so it doesn't eat leading digit of date)
+    normText.match(/(?:MON|TUE|WED|THU|FRI|SAT|SUN)[^\n]{0,15}?(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4})/i) ||
+    // DRAW keyword on one line, date on the next (OCR newline split: "DRAW:\nSAT 21/02/26")
+    normText.match(/DRAW[^\n]*\n(?:[^\d\n]{0,20})(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4})/i) ||
+    // Day name with noise between digits: "SAT 21 02 26" or "SAT 21/02/2B" handled via flexible capture
+    (() => {
+      const m = normText.match(/(?:MON|TUE|WED|THU|FRI|SAT|SUN)[^a-z\d]{0,10}(\d{1,2})[^a-z\d]{0,3}(\d{1,2})[^a-z\d]{0,3}(\d{2,4})/i);
+      return m ? { 1: `${m[1]}/${m[2]}/${m[3]}` } : null;
+    })();
 
   const drawDates = [];
   if (drawLineMatch) drawDates.push(drawLineMatch[1]);
@@ -103,6 +114,21 @@ function parseTicketText(rawText) {
       const labelM = line.match(/^([A-Z])\s*[.:\s]\s*(.{1,20})/);
       if (!labelM) continue;
       const digits = labelM[2].replace(/[^0-9]/g, '');
+      if (digits.length >= 4) {
+        const num = digits.slice(0, 4);
+        if (!seen.has(num)) { seen.add(num); combinations.push(num); }
+      }
+    }
+
+    // Strategy 1C — cross-line label: OCR put "A." on its own line, number on next.
+    // e.g.  line[i]   = "A."
+    //       line[i+1] = "5888  BIG $20  SML $30"
+    for (let i = 0; i < lines.length - 1; i++) {
+      const trimmed = lines[i].trim();
+      // Line is just a letter with optional punctuation and no 4-digit number
+      if (!/^[A-Z]\s*[.:,]?\s*$/.test(trimmed)) continue;
+      const nextLine = lines[i + 1].trim();
+      const digits = nextLine.replace(/[^0-9]/g, '');
       if (digits.length >= 4) {
         const num = digits.slice(0, 4);
         if (!seen.has(num)) { seen.add(num); combinations.push(num); }
@@ -301,29 +327,32 @@ router.post('/upload', optionalAuth, upload.single('ticket'), async (req, res) =
       return res.status(400).json({ error: 'No file uploaded' });
     }
 
-    // ── OCR: OCR.Space first (free API, handles watermarked tickets well),
-    // Tesseract with HSV watermark removal as fallback.
+    // ── OCR: OCR.Space Engine 2 → Engine 1 → Tesseract+HSV (last resort)
     let text = '';
     let ocrEngine = 'tesseract';
 
-    try {
-      // Resize to max 1600px before sending to stay under OCR.Space 5MB limit
-      const ocrImageBuffer = await sharp(req.file.buffer)
-        .resize({ width: 1600, height: 1600, fit: 'inside', withoutEnlargement: true })
-        .jpeg({ quality: 90 })
-        .toBuffer();
+    // Preprocess: sharpen + normalise contrast before OCR to improve accuracy on
+    // watermarked tickets where digits sit over the red Singapore Pools S pattern.
+    const ocrImageBuffer = await sharp(req.file.buffer)
+      .resize({ width: 1600, height: 1600, fit: 'inside', withoutEnlargement: true })
+      .sharpen({ sigma: 1.5 })
+      .normalise()
+      .jpeg({ quality: 92 })
+      .toBuffer();
 
-      const base64Image = `data:image/jpeg;base64,${ocrImageBuffer.toString('base64')}`;
+    const base64Image = `data:image/jpeg;base64,${ocrImageBuffer.toString('base64')}`;
+
+    // Reusable OCR.Space caller — engine 2 (default) or 1 (Tesseract-based fallback)
+    const callOcrSpace = async (engineNum) => {
       const body = new URLSearchParams({
         base64Image,
         language:          'eng',
-        OCREngine:         '2',
+        OCREngine:         String(engineNum),
         scale:             'true',
         isTable:           'false',
         detectOrientation: 'true',
       });
-
-      const ocrRes  = await fetch('https://api.ocr.space/parse/image', {
+      const ocrRes = await fetch('https://api.ocr.space/parse/image', {
         method:  'POST',
         headers: {
           apikey:         process.env.OCRSPACE_API_KEY || 'helloworld',
@@ -331,19 +360,43 @@ router.post('/upload', optionalAuth, upload.single('ticket'), async (req, res) =
         },
         body: body.toString(),
       });
+      const ocrData = await ocrRes.json();
+      return ocrData.ParsedResults?.[0]?.ParsedText?.trim() || '';
+    };
 
-      const ocrData  = await ocrRes.json();
-      const detected = ocrData.ParsedResults?.[0]?.ParsedText?.trim() || '';
+    // A result that looks like a ticket has a game keyword, labeled numbers, or DRAW line.
+    const looksLikeTicket = (t) => {
+      const u = t.toUpperCase();
+      return /4D|TOTO/.test(u) || /[A-E]\s*[.:]\s*\d{4}/.test(t) || /BIG|SML|ORDINARY|DRAW/.test(u);
+    };
 
-      if (detected.length > 20) {
+    try {
+      const detected = await callOcrSpace(2);
+      if (detected.length > 20 && looksLikeTicket(detected)) {
         text      = detected;
-        ocrEngine = 'ocr.space';
-        console.log('[upload] OCR via OCR.Space, length:', text.length);
+        ocrEngine = 'ocr.space-e2';
+        console.log('[upload] OCR via OCR.Space Engine 2, length:', text.length);
       } else {
-        throw new Error('OCR.Space returned too little text');
+        throw new Error(
+          detected.length <= 20
+            ? 'OCR.Space Engine 2 returned too little text'
+            : 'OCR.Space Engine 2 result does not look like a ticket — trying Engine 1'
+        );
       }
-    } catch (ocrSpaceErr) {
-      console.warn('[upload] OCR.Space unavailable, falling back to Tesseract:', ocrSpaceErr.message);
+    } catch (e2Err) {
+      // Engine 2 failed or returned non-ticket text — try Engine 1 before Tesseract
+      try {
+        console.log('[upload] OCR.Space Engine 2 issue:', e2Err.message);
+        const detected = await callOcrSpace(1);
+        if (detected.length > 20) {
+          text      = detected;
+          ocrEngine = 'ocr.space-e1';
+          console.log('[upload] OCR via OCR.Space Engine 1, length:', text.length);
+        } else {
+          throw new Error('OCR.Space Engine 1 returned too little text');
+        }
+      } catch (e1Err) {
+        console.warn('[upload] Both OCR.Space engines failed, falling back to Tesseract:', e1Err.message);
 
       // ── Watermark removal: Singapore Pools tickets have a red/pink watermark.
       // Use HSV to identify only saturated red pixels and replace with white —
@@ -398,7 +451,8 @@ router.post('/upload', optionalAuth, upload.single('ticket'), async (req, res) =
       const { data: { text: tesseractText } } = await worker.recognize(processedBuffer);
       await worker.terminate();
       text = tesseractText;
-    }
+      }  // end catch (e1Err)
+    }  // end catch (e2Err)
 
     console.log(`[upload] OCR engine: ${ocrEngine}, text length: ${text.length}`);
 
