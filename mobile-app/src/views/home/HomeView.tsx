@@ -36,8 +36,8 @@ function StatCard({ label, value, color }: { label: string; value: number; color
 
 function RecentRow({ ticket, onPress }: { ticket: Ticket; onPress: () => void }) {
   const is4D   = ticket.gameType === '4D';
-  const accent = is4D ? '#e53935' : '#7c3aed';
-  const text   = is4D ? '#e53935' : '#a78bfa';
+  const accent = is4D ? '#4a8fff' : '#7b9fff';
+  const text   = is4D ? '#4a8fff' : '#7b9fff';
   return (
     <TouchableOpacity style={s.recentRow} onPress={onPress} activeOpacity={0.7}>
       <View style={[s.recentIcon, { backgroundColor: accent + '22' }]}>
@@ -72,11 +72,11 @@ export function HomeView() {
 
   return (
     <SafeAreaView style={s.safe} edges={['top']}>
-      <StatusBar barStyle="light-content" backgroundColor="#0d1117" />
+      <StatusBar barStyle="light-content" backgroundColor="#0f1117" />
       <ScrollView
         style={s.scroll}
         contentContainerStyle={s.content}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={refresh} tintColor="#e53935" />}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={refresh} tintColor="#4a8fff" />}
         showsVerticalScrollIndicator={false}
       >
         {/* ── Hero ──────────────────────────────────────────── */}
@@ -92,14 +92,14 @@ export function HomeView() {
 
           <Text style={s.heroTitle}>
             Scan. Extract.{'\n'}
-            <Text style={{ color: '#e53935' }}>Know your numbers.</Text>
+            <Text style={{ color: '#4a8fff' }}>Know your numbers.</Text>
           </Text>
           <Text style={s.heroDesc}>
             Upload any 4D or TOTO ticket — our AI extracts every detail instantly.
           </Text>
 
           <View style={s.ctaRow}>
-            <TouchableOpacity style={[s.ctaBtn, s.ctaPrimary]} onPress={() => router.push('/upload')} activeOpacity={0.85}>
+            <TouchableOpacity style={[s.ctaBtn, s.ctaPrimary]} onPress={() => router.push('/tabs/upload' as any)} activeOpacity={0.85}>
               <Text style={s.ctaBtnText}>📸  Scan Ticket</Text>
             </TouchableOpacity>
             <TouchableOpacity style={[s.ctaBtn, s.ctaSecondary]} onPress={() => router.push('/tabs/history' as any)} activeOpacity={0.85}>
@@ -111,23 +111,23 @@ export function HomeView() {
         {/* ── Stats ─────────────────────────────────────────── */}
         {!loading && tickets.length > 0 && (
           <View style={s.statsRow}>
-            <StatCard label="Scanned" value={tickets.length} color="#f59e0b" />
-            <StatCard label="4D"      value={count4D}        color="#e53935" />
-            <StatCard label="TOTO"    value={countTOTO}      color="#a78bfa" />
+            <StatCard label="Scanned" value={tickets.length} color="#4a8fff" />
+            <StatCard label="4D"      value={count4D}        color="#4a8fff" />
+            <StatCard label="TOTO"    value={countTOTO}      color="#7b9fff" />
           </View>
         )}
 
         {/* ── Games ─────────────────────────────────────────── */}
         <Text style={s.sectionTitle}>Supported Games</Text>
         <View style={s.gamesRow}>
-          <View style={[s.gameCard, { borderLeftColor: '#e53935' }]}>
+          <View style={[s.gameCard, { borderLeftColor: '#4a8fff' }]}>
             <Text style={s.gameEmoji}>🎰</Text>
-            <Text style={[s.gameType, { color: '#e53935' }]}>4D</Text>
+            <Text style={[s.gameType, { color: '#4a8fff' }]}>4D</Text>
             <Text style={s.gameFeatures}>{'Ordinary & iBet\nRoll entries\nBig / Small bets'}</Text>
           </View>
-          <View style={[s.gameCard, { borderLeftColor: '#7c3aed' }]}>
+          <View style={[s.gameCard, { borderLeftColor: '#7b9fff' }]}>
             <Text style={s.gameEmoji}>🎱</Text>
-            <Text style={[s.gameType, { color: '#a78bfa' }]}>TOTO</Text>
+            <Text style={[s.gameType, { color: '#7b9fff' }]}>TOTO</Text>
             <Text style={s.gameFeatures}>{'System 7–12\nQuick Pick\niTOTO format'}</Text>
           </View>
         </View>
@@ -148,7 +148,7 @@ export function HomeView() {
           <View style={s.emptyWrap}>
             <Mascot state="sleeping" size={76} />
             <Text style={[s.emptyText, { marginTop: 16 }]}>No tickets yet</Text>
-            <TouchableOpacity onPress={() => router.push('/upload')}>
+            <TouchableOpacity onPress={() => router.push('/tabs/upload' as any)}>
               <Text style={s.emptyLink}>Scan your first ticket →</Text>
             </TouchableOpacity>
           </View>
@@ -169,13 +169,13 @@ export function HomeView() {
 // ── Styles ───────────────────────────────────────────────────────────────────
 
 const s = StyleSheet.create({
-  safe:    { flex: 1, backgroundColor: '#0d1117' },
+  safe:    { flex: 1, backgroundColor: '#0f1117' },
   scroll:  { flex: 1 },
   content: { paddingBottom: 40 },
 
-  hero: { padding: 24, paddingTop: 20, borderBottomWidth: 1, borderBottomColor: '#21262d' },
+  hero: { padding: 24, paddingTop: 20, borderBottomWidth: 1, borderBottomColor: '#2a2f45' },
   logoRow: { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 28 },
-  logoBox: { width: 44, height: 44, borderRadius: 12, backgroundColor: '#e53935', alignItems: 'center', justifyContent: 'center' },
+  logoBox: { width: 44, height: 44, borderRadius: 12, backgroundColor: '#4a8fff', alignItems: 'center', justifyContent: 'center' },
   logoText: { color: '#fff', fontWeight: '900', fontSize: 16 },
   appName:  { fontSize: 20, fontWeight: '800', color: '#f0f6fc' },
   appSub:   { fontSize: 12, color: '#8b949e' },
@@ -183,27 +183,27 @@ const s = StyleSheet.create({
   heroDesc:  { fontSize: 15, color: '#8b949e', lineHeight: 22, marginBottom: 24 },
   ctaRow:    { flexDirection: 'row', gap: 12 },
   ctaBtn:    { flex: 1, paddingVertical: 14, borderRadius: 12, alignItems: 'center' },
-  ctaPrimary:   { backgroundColor: '#e53935' },
-  ctaSecondary: { backgroundColor: '#161b22', borderWidth: 1, borderColor: '#30363d' },
+  ctaPrimary:   { backgroundColor: '#4a8fff' },
+  ctaSecondary: { backgroundColor: '#181c2a', borderWidth: 1, borderColor: '#30363d' },
   ctaBtnText: { color: '#fff', fontWeight: '700', fontSize: 15 },
 
   statsRow: { flexDirection: 'row', gap: 12, paddingHorizontal: 20, paddingTop: 20 },
-  statCard:  { flex: 1, backgroundColor: '#161b22', borderRadius: 12, padding: 14, alignItems: 'center', borderWidth: 1 },
+  statCard:  { flex: 1, backgroundColor: '#181c2a', borderRadius: 12, padding: 14, alignItems: 'center', borderWidth: 1 },
   statValue: { fontSize: 26, fontWeight: '900' },
   statLabel: { fontSize: 11, color: '#8b949e', marginTop: 2, fontWeight: '600' },
 
   sectionHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingTop: 28, marginBottom: 12 },
   sectionTitle:  { fontSize: 17, fontWeight: '800', color: '#f0f6fc', paddingHorizontal: 20, paddingTop: 28, marginBottom: 12 },
-  seeAll: { fontSize: 14, color: '#e53935', fontWeight: '600' },
+  seeAll: { fontSize: 14, color: '#4a8fff', fontWeight: '600' },
 
   gamesRow: { flexDirection: 'row', gap: 12, paddingHorizontal: 20, marginTop: -4 },
-  gameCard: { flex: 1, backgroundColor: '#161b22', borderRadius: 12, padding: 16, borderLeftWidth: 3, borderWidth: 1, borderColor: '#21262d' },
+  gameCard: { flex: 1, backgroundColor: '#181c2a', borderRadius: 12, padding: 16, borderLeftWidth: 3, borderWidth: 1, borderColor: '#2a2f45' },
   gameEmoji:    { fontSize: 28, marginBottom: 8 },
   gameType:     { fontSize: 20, fontWeight: '800', marginBottom: 6 },
   gameFeatures: { fontSize: 12, color: '#8b949e', lineHeight: 20 },
 
   recentList: { paddingHorizontal: 20 },
-  recentRow:  { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: '#161b22', borderRadius: 12, padding: 14, marginBottom: 10, borderWidth: 1, borderColor: '#21262d' },
+  recentRow:  { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: '#181c2a', borderRadius: 12, padding: 14, marginBottom: 10, borderWidth: 1, borderColor: '#2a2f45' },
   recentIcon:     { width: 42, height: 42, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
   recentIconText: { fontSize: 20 },
   recentInfo:     { flex: 1 },
@@ -214,8 +214,8 @@ const s = StyleSheet.create({
   recentTime: { fontSize: 11, color: '#8b949e' },
 
   skeletonWrap: { paddingHorizontal: 20 },
-  skeleton: { height: 72, borderRadius: 12, marginBottom: 10, backgroundColor: '#161b22' },
+  skeleton: { height: 72, borderRadius: 12, marginBottom: 10, backgroundColor: '#181c2a' },
   emptyWrap: { alignItems: 'center', padding: 32 },
   emptyText: { fontSize: 16, color: '#8b949e', marginBottom: 8 },
-  emptyLink: { fontSize: 14, color: '#e53935', fontWeight: '600' },
+  emptyLink: { fontSize: 14, color: '#4a8fff', fontWeight: '600' },
 });

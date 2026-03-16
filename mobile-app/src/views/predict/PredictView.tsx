@@ -13,18 +13,18 @@ import type { Prediction } from '../../entities/Prediction';
 // ── Design tokens ─────────────────────────────────────────────────────────────
 
 const C = {
-  bg:      '#010e1f',
-  surface: '#011428',
-  border:  '#0a2448',
-  border2: '#163360',
-  blue:    '#24488D',
-  gold:    '#FBC63C',
-  purple:  '#a78bfa',
-  violet:  '#7c3aed',
-  red:     '#e53935',
+  bg:      '#0f1117',
+  surface: '#181c2a',
+  border:  '#2a2f45',
+  border2: '#30363d',
+  blue:    '#4a8fff',
+  gold:    '#4a8fff',
+  purple:  '#7b9fff',
+  violet:  '#7b9fff',
+  red:     '#4a8fff',
   text:    '#f0f6fc',
   text2:   '#c9d1d9',
-  muted:   '#6b8eb5',
+  muted:   '#8b9bbf',
   white:   '#ffffff',
 };
 
@@ -516,7 +516,7 @@ const s = StyleSheet.create({
   ballsRow:  { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
   ballPrimary: {
     width: 38, height: 38, borderRadius: 19,
-    backgroundColor: 'rgba(167,139,250,0.2)', borderWidth: 1.5, borderColor: C.purple,
+    backgroundColor: 'rgba(123,159,255,0.2)', borderWidth: 1.5, borderColor: C.purple,
     alignItems: 'center', justifyContent: 'center',
   },
   ballPrimaryTxt: { fontSize: 12, fontWeight: '800', color: C.purple },

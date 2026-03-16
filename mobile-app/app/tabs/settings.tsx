@@ -1,17 +1,18 @@
 import React, { useState } from 'react';
 import {
   View, Text, ScrollView, Switch, TouchableOpacity,
-  StyleSheet, SafeAreaView, Platform,
+  StyleSheet, StatusBar,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const C = {
-  bg:      '#010e1f',
-  surface: '#011428',
-  border:  '#0a2448',
-  blue:    '#24488D',
-  gold:    '#FBC63C',
+  bg:      '#0f1117',
+  surface: '#181c2a',
+  border:  '#2a2f45',
+  blue:    '#4a8fff',
+  gold:    '#4a8fff',
   text:    '#f0f6fc',
-  sub:     '#6b8eb5',
+  sub:     '#8b9bbf',
   white:   '#ffffff',
   green:   '#22c55e',
   red:     '#f87171',
@@ -54,7 +55,8 @@ export default function SettingsScreen() {
   const [remindIdx,  setRemindIdx]  = useState(0);
 
   return (
-    <SafeAreaView style={s.safe}>
+    <SafeAreaView style={s.safe} edges={['top']}>
+      <StatusBar barStyle="light-content" backgroundColor={C.bg} />
       <ScrollView style={s.scroll} contentContainerStyle={s.content}>
 
         {/* ── Lottery Reminder ───────────────────────────── */}
@@ -69,9 +71,9 @@ export default function SettingsScreen() {
               <Switch
                 value={enabled}
                 onValueChange={setEnabled}
-                trackColor={{ false: '#1a3570', true: C.blue }}
+                trackColor={{ false: '#2a2f45', true: C.blue }}
                 thumbColor={C.white}
-                ios_backgroundColor="#1a3570"
+                ios_backgroundColor="#2a2f45"
               />
             }
           />
@@ -139,9 +141,9 @@ export default function SettingsScreen() {
               <Switch
                 value={enabled && (games4D || gamesToto)}
                 onValueChange={() => {}}
-                trackColor={{ false: '#1a3570', true: C.blue }}
+                trackColor={{ false: '#2a2f45', true: C.blue }}
                 thumbColor={C.white}
-                ios_backgroundColor="#1a3570"
+                ios_backgroundColor="#2a2f45"
                 disabled
               />
             }
@@ -153,9 +155,9 @@ export default function SettingsScreen() {
               <Switch
                 value={true}
                 onValueChange={() => {}}
-                trackColor={{ false: '#1a3570', true: C.blue }}
+                trackColor={{ false: '#2a2f45', true: C.blue }}
                 thumbColor={C.white}
-                ios_backgroundColor="#1a3570"
+                ios_backgroundColor="#2a2f45"
                 disabled
               />
             }
@@ -227,7 +229,7 @@ const s = StyleSheet.create({
 
   infoBox: {
     flexDirection: 'row', gap: 12,
-    padding: 16, backgroundColor: 'rgba(36,72,141,0.08)',
+    padding: 16, backgroundColor: 'rgba(74,143,255,0.08)',
   },
   infoIcon:  { fontSize: 22, marginTop: 2 },
   infoTitle: { fontSize: 14, fontWeight: '700', color: C.text, marginBottom: 6 },

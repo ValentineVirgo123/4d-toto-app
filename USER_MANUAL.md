@@ -63,7 +63,7 @@ SGLottery is a full-stack application for scanning, storing, and analysing Singa
 | Service | Purpose | Free Tier |
 |---------|---------|-----------|
 | Firebase (Firestore) | Database storage | Yes |
-| Firebase Storage | Ticket image storage | Yes |
+| Firebase Storage | Ticket image storage | No (Blaze plan required — disabled in this build) |
 | ngrok | Expose localhost to mobile | Yes |
 
 ---
@@ -318,22 +318,22 @@ Navigate to **Predict** (web) or the **Predict** tab 🔮 (mobile).
 
 ### Three Models
 
-#### Model 1 — Frequency Analysis (Hot Numbers)
+#### Model 1 — Digit Frequency Analysis
 - **Method**: Counts how often each number has appeared in recent draws, weighted by recency (exponential decay)
 - **4D output**: Selects the most frequent digit for each of the 4 positions
 - **TOTO output**: Selects the 12 most frequently occurring numbers (System 12)
 - **Confidence**: ~0.01% (equivalent to random chance)
 
-#### Model 2 — Gap Analysis (Overdue Numbers)
-- **Method**: Identifies numbers that haven't appeared in a long time, measured against the expected gap
-- **4D output**: Selects the most "overdue" digit per position
-- **TOTO output**: Selects the 12 most overdue numbers
+#### Model 2 — Hot & Cold Number Analysis
+- **Method**: Identifies numbers that haven't appeared in a long time, measured against the expected gap; also tracks "hot" streaks
+- **4D output**: Selects the most overdue digit per position
+- **TOTO output**: Selects the 12 coldest (most overdue) numbers
 - **Confidence**: ~0.01% — illustrates the Gambler's Fallacy
 
-#### Model 3 — Markov Chain (Sequential Pattern)
-- **Method**: Builds a transition probability matrix from consecutive draws; samples from the current state
-- **4D output**: Transitions from the most recent draw's digits
-- **TOTO output**: Uses range-signature Markov transitions, then samples 12 numbers
+#### Model 3 — Odd & Even / Jackpot Pattern Analysis
+- **Method**: Analyses the ratio of odd/even numbers and jackpot-range clusters across historical draws; selects numbers matching the most common patterns
+- **4D output**: Picks digits matching the dominant odd/even positional pattern
+- **TOTO output**: Selects 12 numbers matching the most frequent odd/even distribution
 - **Confidence**: ~0.01–0.05%
 
 ### Reading TOTO System 12 Predictions
@@ -342,7 +342,7 @@ Each model produces a **System 12** TOTO prediction:
 - **Supplementary (6 numbers)**: The additional System 12 numbers — shown in gold
 - Together these form a valid System 12 entry (12 unique numbers, C(12,6) = 924 combinations)
 
-### Click "View Model Documentation" for each model to see:
+### Click "About this model" (▼ toggle at bottom of each card) to see:
 - Why the model was chosen
 - Core assumptions
 - Methodology details
@@ -380,7 +380,7 @@ Each model produces a **System 12** TOTO prediction:
 ### Test 5: Predictive Analysis
 1. Go to http://localhost:5173/predict
 2. Verify 3 model cards load with 4D number + 12 TOTO balls each
-3. Click **View Model Documentation** — verify all fields are present
+3. Click **▼ About this model** toggle — verify all fields are present (why, assumptions, methodology, evaluation, confidence, disclaimer)
 4. Click **Regenerate** — numbers should change (randomised from weighted data)
 
 ### Test 6: Notifications (Web)
@@ -416,11 +416,10 @@ Each model produces a **System 12** TOTO prediction:
 - Check Firestore rules allow reads
 - Open browser console for specific error
 
-### Firebase Storage errors (image upload)
-- Ensure `FIREBASE_STORAGE_BUCKET` is set in `.env`
-- Bucket name format: `your-project.appspot.com`
-- Check Firebase Storage rules allow writes
-- Image upload is optional — ticket saves even without image
+### Firebase Storage (image upload)
+- Image storage is disabled in this build (requires Firebase Blaze plan)
+- Tickets save and function fully without images
+- History cards display a game-type icon instead of a photo thumbnail
 
 ### Scraper returns mock data
 - Singapore Pools may block direct scraping (bot detection)
@@ -453,7 +452,7 @@ taskkill /PID <pid> /F
 |-------|--------|-----------|
 | Singapore Pools scraper may be blocked | Known | Mock data fallback active |
 | OCR accuracy varies with image quality | Known | Use high-res, well-lit photos |
-| Firebase Storage upload sometimes skipped | Minor | Ticket still saves without image |
+| Firebase Storage disabled (requires Blaze plan) | Known | History shows game-type icon; all other features unaffected |
 | Expo background polling limited in Expo Go | Known | Use standalone Expo build for full push |
 | `(tabs)` folder renamed to `tabs` — may need router update | Fixed | Folder is now `app/tabs/` |
 | TOTO System 12 expansion (924 combos) may be slow in Firestore | Minor | Stored async; no UI blocking |
@@ -590,7 +589,7 @@ Generate predictions from all 3 models.
 {
   "predictions": [
     {
-      "model": "Frequency Analysis",
+      "model": "Digit Frequency Analysis",
       "modelId": "frequency",
       "predicted4D": "3829",
       "predictedTOTO": [4, 7, 15, 22, 33, 36, 41, 44, 46, 47, 48, 49],

@@ -1572,6 +1572,13 @@ img, svg { display: block; }
 .hist-card.toto  { border-left-color: var(--purple); }
 
 /* Game-type avatar (replaces thumbnail) */
+.hist-thumb-img {
+  flex-shrink: 0;
+  width: 52px; height: 52px;
+  border-radius: 10px;
+  object-fit: cover;
+  border: 1px solid var(--border-2);
+}
 .hist-avatar {
   flex-shrink: 0;
   width: 52px;
@@ -2855,6 +2862,34 @@ img, svg { display: block; }
 }
 
 /* Hint text */
+.predict-doc-toggle {
+  width: 100%; display: flex; align-items: center; gap: 6px;
+  padding: 10px 20px; background: none; border: none; border-top: 1px solid var(--border);
+  cursor: pointer; font-size: 12px; font-weight: 600; letter-spacing: .03em;
+  transition: background .15s;
+}
+.predict-doc-toggle:hover { background: rgba(74,143,255,.05); }
+.predict-doc-panel {
+  padding: 14px 20px 18px; border-top: 1px solid var(--border);
+  display: flex; flex-direction: column; gap: 12px;
+  background: rgba(0,0,0,.15);
+}
+.predict-doc-row {
+  display: flex; flex-direction: column; gap: 3px;
+}
+.predict-doc-label {
+  font-size: 10px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
+  color: var(--text-muted);
+}
+.predict-doc-value {
+  font-size: 12px; color: var(--text-2); line-height: 1.6;
+}
+.predict-doc-disclaimer {
+  font-size: 11px; color: #f87171; font-weight: 600;
+  padding: 8px 10px; background: rgba(248,113,113,.08);
+  border: 1px solid rgba(248,113,113,.2); border-radius: 6px;
+}
+
 .predict-hint {
   font-size: 12px;
   color: var(--text-muted);

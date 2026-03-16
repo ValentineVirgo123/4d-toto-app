@@ -1,6 +1,7 @@
 ﻿import { Tabs } from 'expo-router';
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { HapticTab } from '@/components/haptic-tab';
 
 function TabIcon({ emoji, focused }: { emoji: string; focused: boolean }) {
@@ -15,7 +16,7 @@ function TabIcon({ emoji, focused }: { emoji: string; focused: boolean }) {
 const tabStyles = StyleSheet.create({
   wrap:  { alignItems: 'center', paddingTop: 2 },
   emoji: { fontSize: 20 },
-  dot:   { width: 4, height: 4, borderRadius: 2, backgroundColor: '#24488D', marginTop: 2 },
+  dot:   { width: 4, height: 4, borderRadius: 2, backgroundColor: '#4a8fff', marginTop: 2 },
 });
 
 const TAB_SCREENS = [
@@ -28,21 +29,24 @@ const TAB_SCREENS = [
 ];
 
 export default function TabLayout() {
+  const insets = useSafeAreaInsets();
+
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
         tabBarButton: HapticTab,
         tabBarStyle: {
-          backgroundColor: '#010e1f',
-          borderTopColor: '#0a2448',
+          backgroundColor: '#0f1117',
+          borderTopColor: '#2a2f45',
           borderTopWidth: 1,
-          height: 60,
-          paddingBottom: 8,
+          height: 60 + insets.bottom,
+          paddingBottom: insets.bottom + 6,
+          paddingTop: 6,
         },
         tabBarLabelStyle: { fontSize: 10, fontWeight: '600' },
-        tabBarActiveTintColor: '#FBC63C',
-        tabBarInactiveTintColor: '#6b8eb5',
+        tabBarActiveTintColor: '#4a8fff',
+        tabBarInactiveTintColor: '#8b9bbf',
       }}
     >
       {TAB_SCREENS.map(({ name, title, emoji }) => (

@@ -79,6 +79,7 @@ function ModelCard({ model, index, gameTab }) {
   const hint    = MODEL_HINTS[model.modelId]?.[gameTab] ?? '';
   const primary = (model.predictedTOTO ?? []).slice(0, 6);
   const supp    = (model.predictedTOTO ?? []).slice(6, 12);
+  const [docOpen, setDocOpen] = useState(false);
 
   return (
     <div className="predict-card" style={{ borderLeftColor: accent }}>
@@ -128,6 +129,51 @@ function ModelCard({ model, index, gameTab }) {
         )}
         <p className="predict-hint">{hint}</p>
       </div>
+
+      {/* About this model toggle */}
+      <button className="predict-doc-toggle" style={{ color: accent, borderTopColor: `${accent}20` }} onClick={() => setDocOpen(v => !v)}>
+        <span>{docOpen ? '▲' : '▼'}</span>
+        <span>About this model</span>
+      </button>
+
+      {/* Expandable documentation */}
+      {docOpen && (
+        <div className="predict-doc-panel">
+          {model.why && (
+            <div className="predict-doc-row">
+              <span className="predict-doc-label">Why this model</span>
+              <span className="predict-doc-value">{model.why}</span>
+            </div>
+          )}
+          {model.assumptions && (
+            <div className="predict-doc-row">
+              <span className="predict-doc-label">Core assumptions</span>
+              <span className="predict-doc-value">{model.assumptions}</span>
+            </div>
+          )}
+          {model.methodology && (
+            <div className="predict-doc-row">
+              <span className="predict-doc-label">Methodology</span>
+              <span className="predict-doc-value">{model.methodology}</span>
+            </div>
+          )}
+          {model.evaluation && (
+            <div className="predict-doc-row">
+              <span className="predict-doc-label">Evaluation</span>
+              <span className="predict-doc-value">{model.evaluation}</span>
+            </div>
+          )}
+          {model.confidence && (
+            <div className="predict-doc-row">
+              <span className="predict-doc-label">Confidence</span>
+              <span className="predict-doc-value" style={{ color: accent }}>{model.confidence}</span>
+            </div>
+          )}
+          {model.disclaimer && (
+            <div className="predict-doc-disclaimer">{model.disclaimer}</div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

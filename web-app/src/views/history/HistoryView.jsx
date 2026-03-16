@@ -206,10 +206,14 @@ function TicketCard({ ticket, onClick, onCheck }) {
 
   return (
     <div className={`hist-card ${is4D ? 'fourd' : 'toto'}`} onClick={onClick}>
-      {/* Game-type avatar */}
-      <div className={`hist-avatar ${is4D ? 'fourd' : 'toto'}`}>
-        {is4D ? <Icon4D /> : <IconTOTO />}
-      </div>
+      {/* Ticket thumbnail or game-type avatar */}
+      {ticket.imageUrl ? (
+        <img src={ticket.imageUrl} alt="Ticket" className="hist-thumb-img" />
+      ) : (
+        <div className={`hist-avatar ${is4D ? 'fourd' : 'toto'}`}>
+          {is4D ? <Icon4D /> : <IconTOTO />}
+        </div>
+      )}
 
       {/* Main content */}
       <div className="hist-card-body">

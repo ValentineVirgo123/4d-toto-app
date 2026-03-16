@@ -64,7 +64,7 @@ export function UploadView() {
 
   return (
     <SafeAreaView style={s.safe} edges={['top']}>
-      <StatusBar barStyle="light-content" backgroundColor="#010e1f" />
+      <StatusBar barStyle="light-content" backgroundColor="#0f1117" />
       <ScrollView style={s.scroll} contentContainerStyle={s.content} showsVerticalScrollIndicator={false}>
 
         {/* Header */}
@@ -192,15 +192,15 @@ export function UploadView() {
         {/* Result */}
         {result && !loading && (
           <View style={s.resultCard}>
-            <View style={[s.resultHeader, { borderLeftColor: is4D ? '#e53935' : '#7c3aed' }]}>
+            <View style={[s.resultHeader, { borderLeftColor: is4D ? '#4a8fff' : '#7b9fff' }]}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
                 <Text style={{ fontSize: 28 }}>{is4D ? '🎰' : '🎱'}</Text>
                 <View>
                   <View style={[s.badge, {
-                    backgroundColor: is4D ? '#e5393522' : '#7c3aed22',
-                    borderColor:     is4D ? '#e53935'   : '#7c3aed',
+                    backgroundColor: is4D ? '#4a8fff22' : '#7b9fff22',
+                    borderColor:     is4D ? '#4a8fff'   : '#7b9fff',
                   }]}>
-                    <Text style={[s.badgeText, { color: is4D ? '#e53935' : '#a78bfa' }]}>{result.gameType}</Text>
+                    <Text style={[s.badgeText, { color: is4D ? '#4a8fff' : '#7b9fff' }]}>{result.gameType}</Text>
                   </View>
                   <Text style={s.resultSubhead}>OCR Results</Text>
                 </View>
@@ -213,12 +213,12 @@ export function UploadView() {
 
             <View style={s.resultBody}>
               <View style={s.grid}>
-                <Field label="Game Type"    value={is4D ? '4D' : 'TOTO'}                      accent={is4D ? '#e53935' : '#a78bfa'} />
+                <Field label="Game Type"    value={is4D ? '4D' : 'TOTO'}                      accent={is4D ? '#4a8fff' : '#7b9fff'} />
                 <Field label="Bet Type"     value={result.betType || '—'} />
                 <Field label="Draw Date"    value={result.drawDate || '—'} />
                 <Field label="Combinations" value={String(result.combinationCount ?? result.numbers?.length ?? '—')} />
-                {result.systemSize ? <Field label="System Size" value={`System ${result.systemSize}`} accent="#a78bfa" /> : null}
-                {result.amount     ? <Field label="Amount Paid"  value={`$${result.amount.toFixed(2)}`} accent="#f59e0b" /> : null}
+                {result.systemSize ? <Field label="System Size" value={`System ${result.systemSize}`} accent="#7b9fff" /> : null}
+                {result.amount     ? <Field label="Amount Paid"  value={`$${result.amount.toFixed(2)}`} accent="#4a8fff" /> : null}
               </View>
 
               {result.numbers && result.numbers.length > 0 && (
@@ -227,10 +227,10 @@ export function UploadView() {
                   <View style={s.numWrap}>
                     {result.numbers.map((n, i) => (
                       <View key={i} style={[s.numChip, {
-                        backgroundColor: is4D ? '#e5393520' : '#7c3aed20',
-                        borderColor:     is4D ? '#e53935aa' : '#7c3aedaa',
+                        backgroundColor: is4D ? '#4a8fff20' : '#7b9fff20',
+                        borderColor:     is4D ? '#4a8fffaa' : '#7b9fffaa',
                       }]}>
-                        <Text style={[s.numChipText, { color: is4D ? '#e53935' : '#a78bfa' }]}>{n}</Text>
+                        <Text style={[s.numChipText, { color: is4D ? '#4a8fff' : '#7b9fff' }]}>{n}</Text>
                       </View>
                     ))}
                   </View>
@@ -336,7 +336,7 @@ export function UploadView() {
 // ── Styles ────────────────────────────────────────────────────────────────────
 
 const s = StyleSheet.create({
-  safe:    { flex: 1, backgroundColor: '#010e1f' },
+  safe:    { flex: 1, backgroundColor: '#0f1117' },
   scroll:  { flex: 1 },
   content: { padding: 20, paddingBottom: 60 },
 
@@ -346,10 +346,10 @@ const s = StyleSheet.create({
 
   gameTabs: {
     flexDirection: 'row',
-    backgroundColor: '#011428',
+    backgroundColor: '#181c2a',
     borderRadius: 999,
     borderWidth: 1,
-    borderColor: '#0a2448',
+    borderColor: '#2a2f45',
     padding: 4,
     marginTop: 14,
     marginBottom: 18,
@@ -363,10 +363,10 @@ const s = StyleSheet.create({
     justifyContent: 'center',
   },
   gameTabActive4D: {
-    backgroundColor: '#e53935',
+    backgroundColor: '#4a8fff',
   },
   gameTabActiveToto: {
-    backgroundColor: '#7c3aed',
+    backgroundColor: '#7b9fff',
   },
   gameTabLabel: {
     fontSize: 13,
@@ -379,40 +379,40 @@ const s = StyleSheet.create({
     marginTop: 2,
   },
   resetWrap:  { marginBottom: 18 },
-  resetLink:  { fontSize: 14, color: '#e53935', fontWeight: '600' },
+  resetLink:  { fontSize: 14, color: '#4a8fff', fontWeight: '600' },
 
   btnRow:        { flexDirection: 'row', gap: 12, marginBottom: 20 },
   actionBtn:     { flex: 1, borderRadius: 16, padding: 20, alignItems: 'center', borderWidth: 1 },
-  actionPrimary4D: { backgroundColor: '#e53935', borderColor: '#e53935' },
-  actionPrimaryToto: { backgroundColor: '#7c3aed', borderColor: '#7c3aed' },
-  actionSecondary:{ backgroundColor: '#011428', borderColor: '#0a2448' },
+  actionPrimary4D: { backgroundColor: '#4a8fff', borderColor: '#4a8fff' },
+  actionPrimaryToto: { backgroundColor: '#7b9fff', borderColor: '#7b9fff' },
+  actionSecondary:{ backgroundColor: '#181c2a', borderColor: '#2a2f45' },
   actionIcon: { fontSize: 32, marginBottom: 8 },
   actionText: { color: '#fff', fontWeight: '800', fontSize: 16 },
   actionSub:  { color: 'rgba(255,255,255,0.6)', fontSize: 11, marginTop: 2 },
 
-  tipBox:   { backgroundColor: '#011428', borderRadius: 12, padding: 16, borderWidth: 1, borderColor: '#0a2448', marginBottom: 16 },
-  tipTitle: { fontSize: 14, fontWeight: '700', color: '#f59e0b', marginBottom: 10 },
+  tipBox:   { backgroundColor: '#181c2a', borderRadius: 12, padding: 16, borderWidth: 1, borderColor: '#2a2f45', marginBottom: 16 },
+  tipTitle: { fontSize: 14, fontWeight: '700', color: '#4a8fff', marginBottom: 10 },
   tipText:  { fontSize: 13, color: '#8b949e', marginBottom: 6, lineHeight: 18 },
 
-  previewWrap: { borderRadius: 12, overflow: 'hidden', marginBottom: 16, borderWidth: 1, borderColor: '#0a2448' },
-  preview:     { width: '100%', height: 260, backgroundColor: '#011428' },
+  previewWrap: { borderRadius: 12, overflow: 'hidden', marginBottom: 16, borderWidth: 1, borderColor: '#2a2f45' },
+  preview:     { width: '100%', height: 260, backgroundColor: '#181c2a' },
 
-  loadingBox:   { backgroundColor: '#011428', borderRadius: 16, padding: 28, alignItems: 'center', borderWidth: 1, borderColor: '#0a2448', marginBottom: 16 },
+  loadingBox:   { backgroundColor: '#181c2a', borderRadius: 16, padding: 28, alignItems: 'center', borderWidth: 1, borderColor: '#2a2f45', marginBottom: 16 },
   loadingTitle: { fontSize: 18, fontWeight: '800', color: '#f0f6fc', marginTop: 14, marginBottom: 6 },
   loadingDesc:  { fontSize: 13, color: '#8b949e', textAlign: 'center', marginBottom: 20 },
   steps:        { width: '100%' },
   step:         { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 },
-  stepDot:      { width: 6, height: 6, borderRadius: 3, backgroundColor: '#e53935' },
+  stepDot:      { width: 6, height: 6, borderRadius: 3, backgroundColor: '#4a8fff' },
   stepText:     { fontSize: 13, color: '#8b949e' },
 
-  errorBox:   { backgroundColor: '#1c1215', borderRadius: 12, padding: 20, alignItems: 'center', borderWidth: 1, borderColor: '#e5393544', marginBottom: 16 },
-  errorTitle: { fontSize: 16, fontWeight: '700', color: '#e53935', marginBottom: 6, marginTop: 12 },
+  errorBox:   { backgroundColor: '#1c1215', borderRadius: 12, padding: 20, alignItems: 'center', borderWidth: 1, borderColor: '#4a8fff44', marginBottom: 16 },
+  errorTitle: { fontSize: 16, fontWeight: '700', color: '#4a8fff', marginBottom: 6, marginTop: 12 },
   errorMsg:   { fontSize: 13, color: '#8b949e', textAlign: 'center', marginBottom: 16 },
-  retryBtn:   { backgroundColor: '#e53935', paddingHorizontal: 20, paddingVertical: 10, borderRadius: 8 },
+  retryBtn:   { backgroundColor: '#4a8fff', paddingHorizontal: 20, paddingVertical: 10, borderRadius: 8 },
   retryText:  { color: '#fff', fontWeight: '700' },
 
-  resultCard:    { backgroundColor: '#011428', borderRadius: 16, overflow: 'hidden', borderWidth: 1, borderColor: '#0a2448', marginBottom: 16 },
-  resultHeader:  { padding: 16, borderLeftWidth: 4, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: '#021a33' },
+  resultCard:    { backgroundColor: '#181c2a', borderRadius: 16, overflow: 'hidden', borderWidth: 1, borderColor: '#2a2f45', marginBottom: 16 },
+  resultHeader:  { padding: 16, borderLeftWidth: 4, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: '#1e2235' },
   badge:         { paddingHorizontal: 8, paddingVertical: 2, borderRadius: 999, borderWidth: 1, marginBottom: 2, alignSelf: 'flex-start' },
   badgeText:     { fontSize: 10, fontWeight: '700', letterSpacing: 0.5 },
   resultSubhead: { fontSize: 13, color: '#8b949e' },
@@ -438,17 +438,17 @@ const s = StyleSheet.create({
   idText:    { marginTop: 14, fontSize: 11, color: '#8b949e', fontFamily: 'monospace' },
 
   // System Bet Banner
-  sysBanner:      { flexDirection: 'row', gap: 10, padding: 14, backgroundColor: 'rgba(167,139,250,0.07)', borderTopWidth: 1, borderTopColor: 'rgba(167,139,250,0.2)' },
+  sysBanner:      { flexDirection: 'row', gap: 10, padding: 14, backgroundColor: 'rgba(123,159,255,0.07)', borderTopWidth: 1, borderTopColor: 'rgba(123,159,255,0.2)' },
   sysBannerIcon:  { fontSize: 20 },
-  sysBannerTitle: { fontSize: 14, fontWeight: '700', color: '#a78bfa', marginBottom: 4 },
-  sysBannerSub:   { fontSize: 12, color: '#6b8eb5', lineHeight: 18 },
+  sysBannerTitle: { fontSize: 14, fontWeight: '700', color: '#7b9fff', marginBottom: 4 },
+  sysBannerSub:   { fontSize: 12, color: '#8b9bbf', lineHeight: 18 },
 
   // Comparison Panel
   compPanel:     { margin: 16, marginTop: 0, borderRadius: 10, padding: 14, borderWidth: 1 },
   compPanelWon:  { backgroundColor: 'rgba(34,197,94,0.07)',  borderColor: 'rgba(34,197,94,0.3)' },
   compPanelLost: { backgroundColor: 'rgba(107,142,181,0.06)', borderColor: 'rgba(107,142,181,0.2)' },
   compTitle:     { fontSize: 16, fontWeight: '800', marginBottom: 6 },
-  compPrize:     { fontSize: 22, fontWeight: '900', color: '#f59e0b', marginBottom: 10 },
+  compPrize:     { fontSize: 22, fontWeight: '900', color: '#4a8fff', marginBottom: 10 },
 
   // System Bet Breakdown
   sysBreakdown: { marginTop: 10, borderTopWidth: 1, borderTopColor: 'rgba(107,142,181,0.2)', paddingTop: 10 },
@@ -462,8 +462,8 @@ const s = StyleSheet.create({
   matchLine:    { fontSize: 12, color: '#c9d1d9', fontFamily: 'monospace', paddingVertical: 3 },
 
   // Future Draw Banner
-  futureBanner:      { flexDirection: 'row', gap: 10, padding: 14, backgroundColor: 'rgba(245,158,11,0.07)', borderTopWidth: 1, borderTopColor: 'rgba(245,158,11,0.2)' },
+  futureBanner:      { flexDirection: 'row', gap: 10, padding: 14, backgroundColor: 'rgba(74,143,255,0.07)', borderTopWidth: 1, borderTopColor: 'rgba(74,143,255,0.2)' },
   futureBannerIcon:  { fontSize: 20 },
-  futureBannerTitle: { fontSize: 14, fontWeight: '700', color: '#f59e0b', marginBottom: 4 },
-  futureBannerSub:   { fontSize: 12, color: '#6b8eb5', lineHeight: 18 },
+  futureBannerTitle: { fontSize: 14, fontWeight: '700', color: '#4a8fff', marginBottom: 4 },
+  futureBannerSub:   { fontSize: 12, color: '#8b9bbf', lineHeight: 18 },
 });

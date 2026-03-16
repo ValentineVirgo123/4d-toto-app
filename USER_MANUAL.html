@@ -1,0 +1,1211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>SGLottery — User Manual</title>
+<style>
+  /* ── Reset & Base ── */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; font-size: 13px; line-height: 1.7; color: #1a1a2e; background: #fff; }
+  a { color: #2563eb; text-decoration: none; }
+  code, pre { font-family: 'Consolas', 'Courier New', monospace; }
+
+  /* ── Layout ── */
+  .page-wrap  { max-width: 900px; margin: 0 auto; padding: 0 40px; }
+  .cover      { min-height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: flex-start; padding: 80px 60px; background: linear-gradient(135deg, #0f1117 0%, #1a1f35 60%, #0f1117 100%); color: #fff; page-break-after: always; }
+  section     { page-break-inside: avoid; margin-bottom: 36px; }
+  .section-page { page-break-before: always; padding-top: 20px; }
+
+  /* ── Cover ── */
+  .cover-badge  { background: #4a8fff22; border: 1px solid #4a8fff55; color: #4a8fff; padding: 6px 16px; border-radius: 20px; font-size: 12px; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 32px; display: inline-block; }
+  .cover-title  { font-size: 52px; font-weight: 800; line-height: 1.1; margin-bottom: 12px; }
+  .cover-title span { color: #4a8fff; }
+  .cover-sub    { font-size: 20px; color: #8b9bbf; margin-bottom: 48px; }
+  .cover-meta   { display: flex; gap: 40px; flex-wrap: wrap; }
+  .cover-meta-item label { display: block; font-size: 10px; letter-spacing: 1px; text-transform: uppercase; color: #4a8fff; margin-bottom: 4px; }
+  .cover-meta-item span  { font-size: 14px; color: #e0e6f0; }
+  .cover-divider { width: 60px; height: 4px; background: linear-gradient(90deg, #4a8fff, #7b9fff); border-radius: 2px; margin: 40px 0; }
+  .cover-pills  { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 40px; }
+  .cover-pill   { background: #ffffff12; border: 1px solid #ffffff20; color: #c8d4f0; padding: 5px 14px; border-radius: 20px; font-size: 11px; }
+
+  /* ── TOC ── */
+  .toc          { page-break-after: always; padding: 60px 60px 40px; }
+  .toc h2       { font-size: 28px; font-weight: 700; margin-bottom: 28px; color: #0f1117; border-bottom: 3px solid #4a8fff; padding-bottom: 10px; display: inline-block; }
+  .toc-list     { list-style: none; }
+  .toc-list li  { border-bottom: 1px dotted #d0d8e8; padding: 7px 0; display: flex; justify-content: space-between; align-items: baseline; }
+  .toc-list li a { color: #1a1a2e; font-size: 13px; }
+  .toc-list li a:hover { color: #4a8fff; }
+  .toc-list .toc-num { color: #4a8fff; font-weight: 700; margin-right: 10px; min-width: 24px; display: inline-block; }
+  .toc-list .toc-page { color: #999; font-size: 11px; }
+  .toc-sub      { padding-left: 30px; }
+  .toc-sub li   { border-bottom: 1px dotted #e8ecf4; }
+  .toc-sub li a { font-size: 12px; color: #444; }
+
+  /* ── Content pages ── */
+  .content-page { padding: 50px 60px 40px; }
+  h1.page-h     { font-size: 30px; font-weight: 800; color: #0f1117; border-bottom: 3px solid #4a8fff; padding-bottom: 10px; margin-bottom: 28px; }
+  h2.sec-h      { font-size: 20px; font-weight: 700; color: #0f1117; margin: 32px 0 12px; padding-left: 12px; border-left: 4px solid #4a8fff; }
+  h3.sub-h      { font-size: 15px; font-weight: 700; color: #1e3a6e; margin: 20px 0 8px; }
+  p             { margin-bottom: 10px; color: #2a2a3e; }
+
+  /* ── Tables ── */
+  table         { width: 100%; border-collapse: collapse; margin: 14px 0 20px; font-size: 12px; }
+  th            { background: #1e3a6e; color: #fff; padding: 9px 12px; text-align: left; font-weight: 600; }
+  td            { padding: 8px 12px; border-bottom: 1px solid #e2e8f0; vertical-align: top; }
+  tr:nth-child(even) td { background: #f6f9ff; }
+  tr:hover td   { background: #eef2ff; }
+
+  /* ── Code blocks ── */
+  pre           { background: #0f1117; color: #c9d1d9; padding: 16px 20px; border-radius: 8px; overflow-x: auto; margin: 12px 0 18px; font-size: 11.5px; line-height: 1.6; border-left: 4px solid #4a8fff; }
+  code.inline   { background: #e8edf8; color: #1e3a6e; padding: 2px 7px; border-radius: 4px; font-size: 11.5px; }
+
+  /* ── Screenshot placeholder ── */
+  .screenshot   { background: #f0f4ff; border: 2px dashed #7b9fff; border-radius: 10px; padding: 28px 20px; margin: 16px 0; text-align: center; color: #3d5a99; }
+  .screenshot .ss-icon { font-size: 28px; margin-bottom: 8px; }
+  .screenshot .ss-label { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #4a8fff; }
+  .screenshot .ss-desc  { font-size: 11px; color: #6b7fa3; margin-top: 4px; }
+
+  /* ── Info / Warning / Tip boxes ── */
+  .box          { border-radius: 8px; padding: 12px 16px; margin: 14px 0; font-size: 12px; display: flex; gap: 12px; align-items: flex-start; }
+  .box-icon     { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+  .box.info     { background: #eff6ff; border-left: 4px solid #4a8fff; }
+  .box.warn     { background: #fff9e6; border-left: 4px solid #f59e0b; }
+  .box.danger   { background: #fff0f0; border-left: 4px solid #ef4444; }
+  .box.success  { background: #f0fdf4; border-left: 4px solid #22c55e; }
+  .box strong   { display: block; margin-bottom: 3px; }
+
+  /* ── Lists ── */
+  ul, ol        { padding-left: 22px; margin-bottom: 12px; }
+  li            { margin-bottom: 5px; color: #2a2a3e; }
+  ul li::marker { color: #4a8fff; }
+
+  /* ── Steps ── */
+  .steps        { list-style: none; padding: 0; counter-reset: step-counter; }
+  .steps li     { counter-increment: step-counter; padding: 10px 14px 10px 52px; margin-bottom: 8px; background: #f6f9ff; border-radius: 8px; border: 1px solid #e2eaff; position: relative; }
+  .steps li::before { content: counter(step-counter); position: absolute; left: 14px; top: 10px; background: #4a8fff; color: #fff; width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; }
+
+  /* ── Badges ── */
+  .badge        { display: inline-block; padding: 2px 10px; border-radius: 20px; font-size: 10.5px; font-weight: 700; letter-spacing: 0.5px; }
+  .badge-blue   { background: #dbeafe; color: #1e40af; }
+  .badge-green  { background: #dcfce7; color: #166534; }
+  .badge-red    { background: #fee2e2; color: #991b1b; }
+  .badge-purple { background: #ede9fe; color: #5b21b6; }
+  .badge-grey   { background: #f1f5f9; color: #475569; }
+
+  /* ── Architecture diagram ── */
+  .arch         { background: #0f1117; border-radius: 10px; padding: 20px; margin: 14px 0; }
+  .arch pre     { border: none; margin: 0; padding: 0; background: transparent; border-left: none; }
+
+  /* ── Changelog ── */
+  .changelog-entry { border-left: 3px solid #4a8fff; padding-left: 16px; margin-bottom: 20px; }
+  .changelog-entry .cl-ver  { font-size: 11px; color: #4a8fff; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+  .changelog-entry .cl-date { font-size: 11px; color: #888; margin-left: 10px; }
+  .changelog-entry h4       { font-size: 14px; font-weight: 700; margin: 4px 0 6px; }
+  .changelog-entry ul       { margin: 0; }
+  .changelog-entry li       { font-size: 12px; margin-bottom: 3px; }
+
+  /* ── Section number chip ── */
+  .sec-num { background: #4a8fff; color: #fff; font-size: 10px; font-weight: 700; border-radius: 4px; padding: 2px 7px; margin-right: 8px; }
+
+  /* ── Footer ── */
+  .page-footer { border-top: 1px solid #e2e8f0; padding: 12px 60px; font-size: 10px; color: #999; display: flex; justify-content: space-between; margin-top: 16px; }
+
+  /* ── Print styles ── */
+  @media print {
+    body { font-size: 11px; }
+    .cover { min-height: auto; padding: 60px 48px; page-break-after: always; }
+    .cover-title { font-size: 40px; }
+    .toc, .content-page { padding: 30px 48px 20px; }
+    pre { font-size: 10px; }
+    h1.page-h { font-size: 24px; }
+    h2.sec-h  { font-size: 16px; }
+    .section-page { page-break-before: always; }
+    a { color: inherit; }
+    @page { margin: 1.2cm 1.5cm; size: A4; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     COVER PAGE
+══════════════════════════════════════════════════════════════════ -->
+<div class="cover">
+  <div class="cover-badge">User Manual · v2.0</div>
+  <div class="cover-title">SG<span>Lottery</span></div>
+  <div class="cover-sub">Singapore 4D &amp; TOTO Ticket Scanner Application</div>
+  <div class="cover-divider"></div>
+  <div class="cover-meta">
+    <div class="cover-meta-item"><label>Version</label><span>2.0</span></div>
+    <div class="cover-meta-item"><label>Date</label><span>March 2026</span></div>
+    <div class="cover-meta-item"><label>Platform</label><span>Web · Mobile (Android/iOS)</span></div>
+    <div class="cover-meta-item"><label>Status</label><span>Prototype / Assessment Build</span></div>
+  </div>
+  <div class="cover-pills">
+    <span class="cover-pill">📸 OCR Ticket Scanning</span>
+    <span class="cover-pill">🔔 Push Notifications</span>
+    <span class="cover-pill">📊 Past Results</span>
+    <span class="cover-pill">🔮 Predictive Analysis</span>
+    <span class="cover-pill">📋 Ticket History</span>
+    <span class="cover-pill">🎯 TOTO System Bets</span>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     TABLE OF CONTENTS
+══════════════════════════════════════════════════════════════════ -->
+<div class="toc">
+  <h2>Table of Contents</h2>
+  <ul class="toc-list">
+    <li><a href="#s1"><span class="toc-num">1.</span> Overview</a></li>
+    <li><a href="#s2"><span class="toc-num">2.</span> Prerequisites &amp; Dependencies</a></li>
+    <li><a href="#s3"><span class="toc-num">3.</span> Installation &amp; Setup</a></li>
+    <ul class="toc-list toc-sub">
+      <li><a href="#s3-1"><span class="toc-num">3.1</span> Clone the Repository</a></li>
+      <li><a href="#s3-2"><span class="toc-num">3.2</span> Install Dependencies</a></li>
+      <li><a href="#s3-3"><span class="toc-num">3.3</span> Firebase Setup</a></li>
+      <li><a href="#s3-4"><span class="toc-num">3.4</span> Firestore Indexes</a></li>
+    </ul>
+    <li><a href="#s4"><span class="toc-num">4.</span> Environment Configuration</a></li>
+    <li><a href="#s5"><span class="toc-num">5.</span> Running the Applications</a></li>
+    <li><a href="#s6"><span class="toc-num">6.</span> Feature Guide</a></li>
+    <ul class="toc-list toc-sub">
+      <li><a href="#s6-1"><span class="toc-num">6.1</span> Ticket Upload — Web</a></li>
+      <li><a href="#s6-2"><span class="toc-num">6.2</span> Ticket Upload — Mobile</a></li>
+      <li><a href="#s6-3"><span class="toc-num">6.3</span> OCR Data Extraction</a></li>
+      <li><a href="#s6-4"><span class="toc-num">6.4</span> TOTO System Bet Expansion</a></li>
+      <li><a href="#s6-5"><span class="toc-num">6.5</span> Result Checking</a></li>
+      <li><a href="#s6-6"><span class="toc-num">6.6</span> Ticket History</a></li>
+      <li><a href="#s6-7"><span class="toc-num">6.7</span> Past Results</a></li>
+      <li><a href="#s6-8"><span class="toc-num">6.8</span> Push Notifications</a></li>
+      <li><a href="#s6-9"><span class="toc-num">6.9</span> Settings</a></li>
+    </ul>
+    <li><a href="#s7"><span class="toc-num">7.</span> Predictive Analysis Guide</a></li>
+    <li><a href="#s8"><span class="toc-num">8.</span> Testing Each Feature</a></li>
+    <li><a href="#s9"><span class="toc-num">9.</span> Troubleshooting</a></li>
+    <li><a href="#s10"><span class="toc-num">10.</span> Known Issues</a></li>
+    <li><a href="#s11"><span class="toc-num">11.</span> Data Privacy &amp; Security</a></li>
+    <li><a href="#s12"><span class="toc-num">12.</span> Architecture Overview</a></li>
+    <li><a href="#s13"><span class="toc-num">13.</span> API Reference</a></li>
+    <li><a href="#s14"><span class="toc-num">14.</span> Changelog</a></li>
+  </ul>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SECTION 1 — OVERVIEW
+══════════════════════════════════════════════════════════════════ -->
+<div class="content-page section-page" id="s1">
+  <h1 class="page-h"><span class="sec-num">1</span> Overview</h1>
+
+  <p>
+    <strong>SGLottery</strong> is a full-stack application for scanning, storing, and analysing Singapore Pools
+    4D and TOTO lottery tickets. It covers the complete ticket lifecycle — from photo upload and OCR extraction,
+    through automated result checking, to predictive statistical analysis.
+  </p>
+  <p>The application requires a user account. On first visit, users are presented with a <strong>Login / Register</strong> screen. After authenticating, they are taken to the main dashboard with full access to all features.</p>
+
+  <div class="screenshot"><img src="screenshots/ss1-login.png" alt="SGLottery Login Page" style="width:100%;border-radius:8px;display:block;" /></div>
+
+  <div class="screenshot"><img src="screenshots/ss2-upload.png" alt="Upload Ticket page after login" style="width:100%;border-radius:8px;display:block;" /></div>
+
+  <h2 class="sec-h">Key Features</h2>
+  <table>
+    <tr><th>Feature</th><th>Description</th></tr>
+    <tr><td>📸 OCR Ticket Scanning</td><td>Upload a photo of any Singapore Pools 4D or TOTO ticket; numbers, dates, bet type and serial number are extracted automatically using OCR.</td></tr>
+    <tr><td>🎯 TOTO System Bet Expansion</td><td>System 7–12 tickets are automatically expanded into all C(N,6) combinations (up to 924 for System 12) and stored in Firestore.</td></tr>
+    <tr><td>✅ Automated Result Checking</td><td>Past-draw tickets are checked immediately on upload. Future-draw tickets are polled hourly by a backend cron job.</td></tr>
+    <tr><td>🔔 Push Notifications</td><td>Win/loss alerts delivered via browser push (web) and Expo push notifications (mobile) when results become available.</td></tr>
+    <tr><td>🔮 Predictive Analysis</td><td>Three independent statistical models generate 4D number and TOTO System 12 predictions from historical draw data.</td></tr>
+    <tr><td>📊 Past Results Browser</td><td>Scrapes Singapore Pools for 4D and TOTO past results with mock-data fallback if scraping is blocked.</td></tr>
+    <tr><td>📋 Ticket History</td><td>Full searchable, filterable, sortable history of all scanned tickets with detail modal and inline result checking.</td></tr>
+  </table>
+
+  <h2 class="sec-h">Platform Support</h2>
+  <table>
+    <tr><th>Platform</th><th>Status</th><th>Notes</th></tr>
+    <tr><td>Web (Desktop Browser)</td><td><span class="badge badge-green">✅ Full</span></td><td>Chrome, Firefox, Edge — http://localhost:5173</td></tr>
+    <tr><td>Mobile Web (Browser)</td><td><span class="badge badge-green">✅ Responsive</span></td><td>Same URL, fully responsive layout</td></tr>
+    <tr><td>Android (Expo Go)</td><td><span class="badge badge-green">✅ Full</span></td><td>Scan QR code with Expo Go app</td></tr>
+    <tr><td>iOS (Expo Go)</td><td><span class="badge badge-green">✅ Full</span></td><td>Scan QR code with Expo Go app</td></tr>
+  </table>
+
+  <div class="box info">
+    <span class="box-icon">ℹ️</span>
+    <div><strong>Assessment Note</strong>This manual is intended for evaluators and future interns. All steps assume a fresh machine with no prior project setup.</div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SECTION 2 — PREREQUISITES
+══════════════════════════════════════════════════════════════════ -->
+<div class="content-page section-page" id="s2">
+  <h1 class="page-h"><span class="sec-num">2</span> Prerequisites &amp; Dependencies</h1>
+
+  <h2 class="sec-h">Required Software</h2>
+  <table>
+    <tr><th>Tool</th><th>Minimum Version</th><th>Installation</th></tr>
+    <tr><td><strong>Node.js</strong></td><td>18.x or later</td><td>https://nodejs.org — download LTS installer</td></tr>
+    <tr><td><strong>npm</strong></td><td>9.x or later</td><td>Included automatically with Node.js</td></tr>
+    <tr><td><strong>Git</strong></td><td>2.x</td><td>https://git-scm.com</td></tr>
+    <tr><td><strong>Expo Go App</strong></td><td>Latest</td><td>iOS App Store · Google Play Store</td></tr>
+  </table>
+
+  <h2 class="sec-h">Optional — For Emulator Testing</h2>
+  <table>
+    <tr><th>Tool</th><th>Purpose</th></tr>
+    <tr><td>Android Studio</td><td>Android emulator (not required for physical device)</td></tr>
+    <tr><td>Xcode 15+ (macOS only)</td><td>iOS simulator</td></tr>
+  </table>
+
+  <h2 class="sec-h">External Services</h2>
+  <table>
+    <tr><th>Service</th><th>Purpose</th><th>Free Tier</th></tr>
+    <tr><td><strong>Firebase (Firestore)</strong></td><td>Database — stores tickets and draw results</td><td>Yes — Spark plan</td></tr>
+    <tr><td><strong>ngrok</strong></td><td>Expose localhost to physical mobile device</td><td>Yes — 1 tunnel free</td></tr>
+    <tr><td><strong>OCR.Space API</strong></td><td>Primary OCR engine (fallback to Tesseract if unavailable)</td><td>Yes — free key included</td></tr>
+  </table>
+
+  <div class="box warn">
+    <span class="box-icon">⚠️</span>
+    <div><strong>Firebase Storage</strong> Image thumbnail storage requires the Firebase Blaze (pay-as-you-go) plan. In this prototype build, image storage is disabled — all other features work fully on the free Spark plan.</div>
+  </div>
+
+  <h2 class="sec-h">Verify Your Node.js Installation</h2>
+  <p>Open a terminal and run:</p>
+  <pre>node --version   # Should show v18.x or higher
+npm --version    # Should show 9.x or higher</pre>
+
+  <div class="screenshot"><img src="screenshots/ss11-terminal.png" alt="Backend terminal running" style="width:100%;border-radius:8px;display:block;" /></div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SECTION 3 — INSTALLATION & SETUP
+══════════════════════════════════════════════════════════════════ -->
+<div class="content-page section-page" id="s3">
+  <h1 class="page-h"><span class="sec-num">3</span> Installation &amp; Setup</h1>
+
+  <h2 class="sec-h" id="s3-1">3.1 Clone the Repository</h2>
+  <pre>git clone &lt;your-repository-url&gt;
+cd 4d-toto-app</pre>
+
+  <h2 class="sec-h" id="s3-2">3.2 Install Dependencies</h2>
+  <p>Each sub-project has its own dependencies. Install all three:</p>
+  <pre># Backend
+cd backend
+npm install
+
+# Web App
+cd ../web-app
+npm install
+
+# Mobile App
+cd ../mobile-app
+npm install</pre>
+
+  <div class="screenshot"><img src="screenshots/ss11-terminal.png" alt="Backend terminal" style="width:100%;border-radius:8px;display:block;" /></div>
+
+  <h2 class="sec-h" id="s3-3">3.3 Firebase Setup</h2>
+  <ol class="steps">
+    <li>Go to <strong>https://console.firebase.google.com</strong> and sign in with your Google account.</li>
+    <li>Select your existing project <code>d-toto-app</code> or click <strong>Add Project</strong> to create a new one.</li>
+    <li>In the left sidebar, click <strong>Firestore Database</strong> → <strong>Create Database</strong> → choose <strong>Native mode</strong> → select any region → click <strong>Enable</strong>.</li>
+    <li>Go to <strong>Project Settings</strong> (gear icon, top-left) → <strong>Service Accounts</strong> tab.</li>
+    <li>Click <strong>Generate New Private Key</strong> → confirm → save the downloaded JSON file as <code>backend/serviceAccountKey.json</code>.</li>
+  </ol>
+
+  <div class="box danger">
+    <span class="box-icon">🔒</span>
+    <div><strong>Security Warning</strong>The <code>serviceAccountKey.json</code> file contains your private Firebase credentials. Keep this file secure and never share or upload it to GitHub or any public repository.</div>
+  </div>
+
+  <div class="screenshot">
+    <img src="screenshots/ss-firebase.png" alt="Firebase Console Service Accounts" style="width:100%;border-radius:8px;display:block;" />
+  </div>
+
+  <h2 class="sec-h" id="s3-4">3.4 Firestore Composite Indexes</h2>
+  <p>Navigate to <strong>Firestore Database → Indexes → Composite</strong> and create these indexes:</p>
+  <table>
+    <tr><th>Collection</th><th>Fields</th><th>Order</th></tr>
+    <tr><td><code>tickets</code></td><td>resultStatus ASC · drawType ASC</td><td>Ascending</td></tr>
+    <tr><td><code>tickets</code></td><td>gameType ASC · uploadedAt DESC</td><td>Mixed</td></tr>
+    <tr><td><code>results_4d</code></td><td>drawDate ASC · scrapedAt DESC</td><td>Mixed</td></tr>
+    <tr><td><code>results_toto</code></td><td>drawDate ASC · scrapedAt DESC</td><td>Mixed</td></tr>
+  </table>
+
+  <div class="box info">
+    <span class="box-icon">ℹ️</span>
+    <div>If Firestore automatically prompts you to create a missing index (error in console with a direct link), you can click that link to create the index without manual steps.</div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SECTION 4 — ENVIRONMENT CONFIGURATION
+══════════════════════════════════════════════════════════════════ -->
+<div class="content-page section-page" id="s4">
+  <h1 class="page-h"><span class="sec-num">4</span> Environment Configuration</h1>
+
+  <h2 class="sec-h">4.1 Backend <code>.env</code> File</h2>
+  <p>Create a file at <code>backend/.env</code> with the following content:</p>
+  <pre>PORT=3001
+GOOGLE_APPLICATION_CREDENTIALS=./serviceAccountKey.json
+OCRSPACE_API_KEY=K87295079888957
+JWT_SECRET=sglottery-secret-key-2026-change-in-production</pre>
+
+  <table>
+    <tr><th>Variable</th><th>Purpose</th></tr>
+    <tr><td><code>PORT</code></td><td>Port the Express server listens on (default 3001)</td></tr>
+    <tr><td><code>GOOGLE_APPLICATION_CREDENTIALS</code></td><td>Path to the Firebase service account JSON key</td></tr>
+    <tr><td><code>OCRSPACE_API_KEY</code></td><td>API key for OCR.Space (primary OCR engine); <code>helloworld</code> is a valid free demo key</td></tr>
+    <tr><td><code>JWT_SECRET</code></td><td>Secret for signing JWT tokens (change in production)</td></tr>
+  </table>
+
+  <h2 class="sec-h">4.2 Mobile App — ngrok Backend URL</h2>
+  <p>
+    When testing on a physical device, <code>localhost</code> is not reachable from the phone.
+    Use <strong>ngrok</strong> to create a public HTTPS tunnel to your local backend.
+  </p>
+  <ol class="steps">
+    <li>Install ngrok: <code>npm install -g ngrok</code> or download from https://ngrok.com/download</li>
+    <li>In a <strong>separate terminal</strong>, run: <code>npx ngrok http 3001</code></li>
+    <li>Copy the HTTPS URL shown (e.g. <code>https://abc123.ngrok-free.app</code>)</li>
+    <li>Update this URL in all mobile source files listed below.</li>
+  </ol>
+
+  <div class="screenshot">
+    <img src="screenshots/ss-ngrok.png" alt="ngrok terminal running" style="width:100%;border-radius:8px;display:block;" />
+  </div>
+
+  <p>Files to update — change the <code>const API = '...'</code> line in each:</p>
+  <table>
+    <tr><th>File</th><th>Variable</th></tr>
+    <tr><td><code>mobile-app/app/(tabs)/upload.tsx</code></td><td><code>const API = 'https://YOUR-NGROK-URL/api/tickets'</code></td></tr>
+    <tr><td><code>mobile-app/app/(tabs)/history.tsx</code></td><td><code>const API = 'https://YOUR-NGROK-URL/api/tickets'</code></td></tr>
+    <tr><td><code>mobile-app/app/(tabs)/index.tsx</code></td><td><code>const API = 'https://YOUR-NGROK-URL/api/tickets'</code></td></tr>
+    <tr><td><code>mobile-app/app/(tabs)/results.tsx</code></td><td><code>const API = 'https://YOUR-NGROK-URL/api/results'</code></td></tr>
+    <tr><td><code>mobile-app/app/(tabs)/predict.tsx</code></td><td><code>const API = 'https://YOUR-NGROK-URL/api/predict'</code></td></tr>
+    <tr><td><code>mobile-app/hooks/useNotifications.ts</code></td><td><code>const API = 'https://YOUR-NGROK-URL/api/tickets'</code></td></tr>
+  </table>
+
+  <div class="box info">
+    <span class="box-icon">ℹ️</span>
+    <div><strong>How to start ngrok:</strong> Open a <strong>new terminal window</strong> (keep the backend terminal open) and type: <code>npx ngrok http 3001</code> — the Forwarding URL shown is your mobile backend URL.</div>
+  </div>
+
+  <div class="box warn">
+    <span class="box-icon">⚠️</span>
+    <div>The ngrok URL changes every time you restart ngrok. You must update all 6 files above whenever you get a new ngrok URL. The free plan provides a new random URL each session; paid plans offer static URLs.</div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SECTION 5 — RUNNING THE APPLICATIONS
+══════════════════════════════════════════════════════════════════ -->
+<div class="content-page section-page" id="s5">
+  <h1 class="page-h"><span class="sec-num">5</span> Running the Applications</h1>
+
+  <div class="box info">
+    <span class="box-icon">ℹ️</span>
+    <div>You need <strong>three separate terminal windows</strong> — one for the backend, one for the web app, and one for the mobile app.</div>
+  </div>
+
+  <h2 class="sec-h">5.1 Start the Backend</h2>
+  <pre>cd backend
+node server.js</pre>
+  <p>Expected output:</p>
+  <pre>✅ SGLottery Backend running on port 3001
+   Cron jobs: hourly result polling + daily result refresh</pre>
+  <p>Verify the backend is alive by opening <strong>http://localhost:3001</strong> in your browser — you should see a JSON health response.</p>
+
+  <div class="screenshot">
+    <img src="screenshots/ss11-terminal.png" alt="Backend terminal" style="width:100%;border-radius:8px;display:block;" />
+  </div>
+
+  <h2 class="sec-h">5.2 Start the Web App</h2>
+  <pre>cd web-app
+npm run dev</pre>
+  <p>Expected output:</p>
+  <pre>  VITE v7.x  ready in ~300ms
+  ➜  Local:   http://localhost:5173/</pre>
+  <p>Open <strong>http://localhost:5173</strong> in your browser. You will see the login screen — register a new account or log in to access the app.</p>
+
+  <div class="screenshot">
+    <img src="screenshots/ss1-login.png" alt="Login screen" style="width:100%;border-radius:8px;display:block;" />
+  </div>
+
+  <h2 class="sec-h">5.3 Start the Mobile App</h2>
+  <div class="box info">
+    <span class="box-icon">ℹ️</span>
+    <div><strong>How to start the Mobile App:</strong> Open a new <strong>Command Prompt</strong> window, then type the following commands one at a time:<br/><br/>
+    <code>cd mobile-app</code><br/>
+    <code>npx expo start</code><br/><br/>
+    A QR code will appear in the terminal. Scan it with the <strong>Expo Go</strong> app on your phone to launch the mobile app.
+    </div>
+  </div>
+  <pre>cd mobile-app
+npx expo start</pre>
+
+  <table>
+    <tr><th>Key</th><th>Action</th></tr>
+    <tr><td><code>a</code></td><td>Open Android emulator</td></tr>
+    <tr><td><code>i</code></td><td>Open iOS simulator (macOS only)</td></tr>
+    <tr><td><code>w</code></td><td>Open in web browser</td></tr>
+    <tr><td>Scan QR code</td><td>Open in <strong>Expo Go</strong> app on physical device</td></tr>
+  </table>
+
+  <div class="screenshot">
+    <img src="screenshots/ss-expo.png" alt="Expo QR code in terminal" style="width:100%;border-radius:8px;display:block;" />
+  </div>
+
+  <div class="box warn">
+    <span class="box-icon">⚠️</span>
+    <div><strong>Port already in use?</strong> If port 3001 is blocked by a previous process, run:<br/>
+    <code>netstat -ano | findstr :3001</code> to find the PID, then <code>taskkill /PID &lt;pid&gt; /F</code></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SECTION 6 — FEATURE GUIDE
+══════════════════════════════════════════════════════════════════ -->
+<div class="content-page section-page" id="s6">
+  <h1 class="page-h"><span class="sec-num">6</span> Feature Guide</h1>
+
+  <h2 class="sec-h" id="s6-0">6.0 Login &amp; Registration</h2>
+  <p>The app requires an account. On first visit you will see the <strong>"4T — 4D &amp; TOTO"</strong> login screen.</p>
+
+  <h3 class="sub-h">Registering a New Account</h3>
+  <ol class="steps">
+    <li>Click <strong>No account? Register</strong> at the bottom of the login form.</li>
+    <li>Enter your <strong>Full Name</strong>, <strong>Email address</strong>, and a <strong>Password</strong> (minimum 6 characters).</li>
+    <li>Click <strong>Create Account</strong>. You are logged in immediately.</li>
+  </ol>
+
+  <h3 class="sub-h">Logging In</h3>
+  <ol class="steps">
+    <li>Enter your registered <strong>Email</strong> and <strong>Password</strong>.</li>
+    <li>Click <strong>Login</strong>. The main dashboard loads automatically.</li>
+    <li>Your session is saved in the browser — you will remain logged in on return visits.</li>
+  </ol>
+
+  <div class="box info">
+    <span class="box-icon">ℹ️</span>
+    <div>Authentication requires the backend to be running. If you see "Unable to create account" or "Account not found", ensure <code>node server.js</code> is running on port 3001.</div>
+  </div>
+
+  <h2 class="sec-h" id="s6-1">6.1 Ticket Upload — Web</h2>
+  <ol class="steps">
+    <li>Click <strong>Scan</strong> in the navigation bar.</li>
+    <li>Drag and drop a ticket image onto the upload zone, <em>or</em> click <strong>Browse Files</strong> to select a file, <em>or</em> on mobile browsers click <strong>Use Camera</strong>.</li>
+    <li>A progress indicator appears while OCR processes the image (10–30 seconds).</li>
+    <li>The result card appears automatically showing all extracted data.</li>
+    <li>The ticket is saved to Firestore and visible in the History page.</li>
+  </ol>
+
+  <div class="screenshot">
+    <img src="screenshots/ss2-upload.png" alt="Upload page" style="width:100%;border-radius:8px;display:block;" />
+  </div>
+
+  <div class="screenshot">
+    <img src="screenshots/ss3-ocr-result.png" alt="OCR result card" style="width:100%;border-radius:8px;display:block;" />
+  </div>
+
+  <div class="box info">
+    <span class="box-icon">💡</span>
+    <div><strong>Tip for best OCR results:</strong> Use a clear, well-lit photo. Avoid shadows across the numbers. The ticket should be flat and fill most of the frame. The system automatically removes the Singapore Pools watermark before OCR processing.</div>
+  </div>
+
+  <h2 class="sec-h" id="s6-2">6.2 Ticket Upload — Mobile App</h2>
+  <ol class="steps">
+    <li>Tap the <strong>Scan</strong> tab (📷 camera icon, centre of tab bar).</li>
+    <li>Tap <strong>Take Photo</strong> to use the device camera, <em>or</em> tap <strong>Gallery</strong> to pick an existing image.</li>
+    <li>Grant camera/gallery permission if prompted (first time only).</li>
+    <li>The app uploads the image to the backend and shows a loading spinner.</li>
+    <li>The OCR result card appears with all extracted fields.</li>
+    <li>A local push notification confirms the scan was successful.</li>
+  </ol>
+
+  <div class="screenshot">
+    <div class="ss-icon">📸</div>
+    <div class="ss-label">Screenshot 6.3</div>
+    <div class="ss-desc">Mobile Scan tab — camera/gallery buttons and result card after successful OCR</div>
+  </div>
+
+  <h2 class="sec-h" id="s6-3">6.3 OCR Extracted Data</h2>
+  <table>
+    <tr><th>Field</th><th>Example</th><th>Notes</th></tr>
+    <tr><td>Game Type</td><td><span class="badge badge-blue">4D</span> or <span class="badge badge-purple">TOTO</span></td><td>Auto-detected from ticket text</td></tr>
+    <tr><td>Bet Type</td><td>Ordinary · iBet · Roll · System N · Quick Pick · iTOTO</td><td>All Singapore Pools bet types supported</td></tr>
+    <tr><td>Draw Date</td><td>21/02/2026</td><td>Extracted from DRAW line on ticket</td></tr>
+    <tr><td>Numbers</td><td>5888, 4392</td><td>4-digit numbers (4D) or 6-number rows (TOTO)</td></tr>
+    <tr><td>Serial Number</td><td>846367-8-9785369-004</td><td>Extracted from line below the timestamp</td></tr>
+    <tr><td>Amount Paid</td><td>$10.00</td><td>From PRICE line on ticket</td></tr>
+    <tr><td>Combination Count</td><td>28</td><td>Number of bet combinations (C(N,6) for systems)</td></tr>
+  </table>
+
+  <h2 class="sec-h" id="s6-4">6.4 TOTO System Bet Expansion</h2>
+  <p>
+    When a TOTO System ticket (System 7–12) is detected, the application automatically generates
+    all possible 6-number combinations from the system numbers.
+  </p>
+  <table>
+    <tr><th>System</th><th>Numbers Selected</th><th>Combinations Generated</th></tr>
+    <tr><td>System 7</td><td>7</td><td>7</td></tr>
+    <tr><td>System 8</td><td>8</td><td>28</td></tr>
+    <tr><td>System 9</td><td>9</td><td>84</td></tr>
+    <tr><td>System 10</td><td>10</td><td>210</td></tr>
+    <tr><td>System 11</td><td>11</td><td>462</td></tr>
+    <tr><td>System 12</td><td>12</td><td>924</td></tr>
+  </table>
+  <p>All combinations are stored in Firestore and used for result matching. Open any System ticket in the History detail modal to see the full expanded combination list.</p>
+
+  <h2 class="sec-h" id="s6-5">6.5 Result Checking</h2>
+  <table>
+    <tr><th>Scenario</th><th>Behaviour</th></tr>
+    <tr><td><strong>Past draw</strong> (draw date already passed)</td><td>Results fetched immediately on upload. Win/loss status shown within seconds.</td></tr>
+    <tr><td><strong>Future draw</strong> (draw date in the future)</td><td>Ticket saved as <span class="badge badge-grey">Pending</span>. Backend cron job checks every hour.</td></tr>
+    <tr><td><strong>Manual check</strong></td><td>Click <strong>Check My Ticket</strong> on any history card, or open the detail modal and click <strong>Check Now</strong>.</td></tr>
+  </table>
+
+  <div class="screenshot">
+    <img src="screenshots/ss4-history.png" alt="History page" style="width:100%;border-radius:8px;display:block;" />
+  </div>
+
+  <h2 class="sec-h" id="s6-6">6.6 Ticket History</h2>
+  <p><strong>Web</strong> — Navigate to <strong>History</strong> in the navbar.</p>
+  <ul>
+    <li>Filter by: <span class="badge badge-grey">All</span> <span class="badge badge-blue">4D</span> <span class="badge badge-purple">TOTO</span> <span class="badge badge-green">Won</span> <span class="badge badge-grey">Pending</span> <span class="badge badge-grey">System</span></li>
+    <li>Sort by: Newest · Oldest · Winning First · Amount ↓</li>
+    <li>Click any card to open a detail modal with full OCR data, expanded combinations, and win matches.</li>
+  </ul>
+
+  <div class="screenshot">
+    <img src="screenshots/ss4-history.png" alt="History page with tickets" style="width:100%;border-radius:8px;display:block;" />
+  </div>
+
+  <div class="screenshot">
+    <img src="screenshots/ss5-history-modal.png" alt="History detail modal" style="width:100%;border-radius:8px;display:block;" />
+  </div>
+
+  <h2 class="sec-h" id="s6-7">6.7 Past Results</h2>
+  <p><strong>Web</strong> — Navigate to <strong>Results</strong>. <strong>Mobile</strong> — Tap the Results tab (📊).</p>
+  <ul>
+    <li>Switch between <strong>4D</strong> and <strong>TOTO</strong> tabs.</li>
+    <li>Click <strong>Refresh Live</strong> to re-scrape Singapore Pools (may take 5–10 seconds).</li>
+    <li><strong>4D</strong>: shows 1st/2nd/3rd prizes, Starter and Consolation numbers.</li>
+    <li><strong>TOTO</strong>: shows winning balls, additional number, and jackpot amount.</li>
+  </ul>
+
+  <div class="screenshot">
+    <img src="screenshots/ss6-results-4d.png" alt="Past Results 4D" style="width:100%;border-radius:8px;display:block;" />
+  </div>
+
+  <div class="screenshot">
+    <img src="screenshots/ss7-results-toto.png" alt="Past Results TOTO" style="width:100%;border-radius:8px;display:block;" />
+  </div>
+
+  <h2 class="sec-h" id="s6-8">6.8 Push Notifications</h2>
+  <p><strong>Web:</strong> Browser push notification permission is requested on first visit. Once granted, notifications fire when a pending ticket's result becomes available. An in-app banner also appears in the top-right corner.</p>
+  <p><strong>Mobile:</strong> Expo push notification permission is requested on first app launch. Local notifications fire when a pending ticket result is found during polling, and after every successful OCR scan.</p>
+
+  <div class="screenshot">
+    <img src="screenshots/ss10-settings.png" alt="Settings page" style="width:100%;border-radius:8px;display:block;" />
+  </div>
+
+  <h2 class="sec-h" id="s6-9">6.9 Settings (Web)</h2>
+  <p>Navigate to <strong>Settings</strong> in the navbar.</p>
+  <ul>
+    <li><strong>Notifications</strong>: Enable or disable browser notifications. Toggle 4D and TOTO game alerts separately. The badge shows <strong>On</strong> (green) when permission is granted and at least one game toggle is active.</li>
+    <li><strong>Upcoming Draws</strong>: Shows the next 4D and TOTO draw dates and times.</li>
+    <li><strong>Notification Scheduler</strong>: Schedules reminders before upcoming draw closings.</li>
+  </ul>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SECTION 7 — PREDICTIVE ANALYSIS
+══════════════════════════════════════════════════════════════════ -->
+<div class="content-page section-page" id="s7">
+  <h1 class="page-h"><span class="sec-num">7</span> Predictive Analysis Guide</h1>
+
+  <div class="box danger">
+    <span class="box-icon">⚠️</span>
+    <div><strong>Disclaimer</strong> All predictions are for <strong>educational and entertainment purposes ONLY</strong>. They are NOT intended for gambling or financial decisions. Lottery draws are statistically independent random events. Past patterns do not influence future draws.</div>
+  </div>
+
+  <p>Navigate to <strong>Predict</strong> (web navbar) or the <strong>Predict</strong> tab 🔮 (mobile).</p>
+
+  <div class="screenshot">
+    <img src="screenshots/ss8-predict.png" alt="Predictive Analysis page" style="width:100%;border-radius:8px;display:block;" />
+  </div>
+
+  <h2 class="sec-h">The Three Models</h2>
+
+  <h3 class="sub-h">Model 1 — Digit Frequency Analysis</h3>
+  <table>
+    <tr><td width="130"><strong>Method</strong></td><td>Counts how often each number/digit has appeared in recent draws, weighted by recency using exponential decay (recent draws count more).</td></tr>
+    <tr><td><strong>4D Output</strong></td><td>Selects the most frequently occurring digit for each of the 4 positions independently.</td></tr>
+    <tr><td><strong>TOTO Output</strong></td><td>Selects the 12 most frequently occurring numbers from 1–49 (System 12).</td></tr>
+    <tr><td><strong>Confidence</strong></td><td>~0.01% — equivalent to random chance. Demonstrates hot-number behaviour.</td></tr>
+  </table>
+
+  <h3 class="sub-h">Model 2 — Hot &amp; Cold Number Analysis</h3>
+  <table>
+    <tr><td width="130"><strong>Method</strong></td><td>Identifies numbers that have not appeared for longer than their statistically expected gap (cold numbers). Also tracks numbers on a recent streak (hot numbers).</td></tr>
+    <tr><td><strong>4D Output</strong></td><td>Selects the most overdue digit per position.</td></tr>
+    <tr><td><strong>TOTO Output</strong></td><td>Selects the 12 coldest (most overdue) numbers from 1–49.</td></tr>
+    <tr><td><strong>Confidence</strong></td><td>~0.01% — illustrates the Gambler's Fallacy: past absences do not increase future probability.</td></tr>
+  </table>
+
+  <h3 class="sub-h">Model 3 — Odd &amp; Even / Jackpot Pattern Analysis</h3>
+  <table>
+    <tr><td width="130"><strong>Method</strong></td><td>Analyses the ratio of odd vs even numbers in historical winning draws and the distribution of numbers across low/high ranges. Selects numbers matching the most common pattern.</td></tr>
+    <tr><td><strong>4D Output</strong></td><td>Picks digits matching the dominant odd/even positional pattern from past draws.</td></tr>
+    <tr><td><strong>TOTO Output</strong></td><td>Selects 12 numbers matching the most frequent odd/even distribution.</td></tr>
+    <tr><td><strong>Confidence</strong></td><td>~0.01–0.05% — slightly higher because pattern constraints reduce the search space.</td></tr>
+  </table>
+
+  <h2 class="sec-h">Reading the TOTO System 12 Output</h2>
+  <p>Each model outputs a System 12 TOTO prediction:</p>
+  <ul>
+    <li><strong>Primary (6 numbers)</strong> — the "core" prediction, shown in blue.</li>
+    <li><strong>Supplementary (6 numbers)</strong> — the additional System 12 numbers, shown in lighter blue.</li>
+    <li>Together these 12 numbers form a valid System 12 entry producing C(12,6) = 924 combinations.</li>
+  </ul>
+
+  <h2 class="sec-h">Model Documentation Toggle</h2>
+  <p>Click the <strong>▼ About this model</strong> button at the bottom of each model card to expand the full documentation panel, which includes:</p>
+  <ul>
+    <li><strong>Why</strong> this model was chosen</li>
+    <li><strong>Assumptions</strong> the model makes</li>
+    <li><strong>Methodology</strong> — how numbers are calculated</li>
+    <li><strong>Evaluation</strong> — how model performance is measured</li>
+    <li><strong>Confidence</strong> indicator</li>
+    <li><strong>Disclaimer</strong></li>
+  </ul>
+
+  <div class="screenshot">
+    <img src="screenshots/ss9-predict-doc.png" alt="Model documentation panel expanded" style="width:100%;border-radius:8px;display:block;" />
+  </div>
+
+  <h2 class="sec-h">Regenerating Predictions</h2>
+  <p>Click the <strong>Regenerate</strong> button on any model card to generate a new prediction set. Each run draws from the same historical data but applies randomised weighted sampling, so numbers will vary between runs.</p>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SECTION 8 — TESTING EACH FEATURE
+══════════════════════════════════════════════════════════════════ -->
+<div class="content-page section-page" id="s8">
+  <h1 class="page-h"><span class="sec-num">8</span> Testing Each Feature</h1>
+
+  <div class="box info">
+    <span class="box-icon">ℹ️</span>
+    <div>Ensure the backend is running on port 3001 before running any feature tests.</div>
+  </div>
+
+  <h2 class="sec-h">Test 1 — Ticket Upload &amp; OCR</h2>
+  <ol class="steps">
+    <li>Start the backend (<code>node server.js</code>) and web app (<code>npm run dev</code>).</li>
+    <li>Open <strong>http://localhost:5173/upload</strong>.</li>
+    <li>Upload any clear photo of a Singapore Pools 4D or TOTO ticket.</li>
+    <li><strong>Expected:</strong> Result card appears within 30 seconds with game type, draw date, numbers, bet type, and serial number populated.</li>
+    <li>Open <strong>Firebase Console → Firestore → tickets</strong> collection and verify a new document was created.</li>
+  </ol>
+
+  <h2 class="sec-h">Test 2 — TOTO System Bet Expansion</h2>
+  <ol class="steps">
+    <li>Upload a TOTO System 7 or higher ticket photo.</li>
+    <li>In the result card, verify <code>expandedCombinationCount</code> is shown (e.g. 28 for System 8).</li>
+    <li>Open the ticket in <strong>History → click card → detail modal</strong>.</li>
+    <li><strong>Expected:</strong> The "Expanded Combinations" section lists all combinations with a count (e.g. "28 total").</li>
+  </ol>
+
+  <h2 class="sec-h">Test 3 — Past Results</h2>
+  <ol class="steps">
+    <li>Navigate to <strong>http://localhost:5173/results</strong>.</li>
+    <li>Click <strong>Refresh Live</strong>.</li>
+    <li><strong>Expected:</strong> 4D prize numbers (1st, 2nd, 3rd, Starters, Consolation) and TOTO winning balls load within 10 seconds.</li>
+    <li>If Singapore Pools blocks scraping, mock demo data is shown — this is expected behaviour, labelled "Demo data".</li>
+  </ol>
+
+  <h2 class="sec-h">Test 4 — Result Checking (Past Draw)</h2>
+  <ol class="steps">
+    <li>Upload a ticket with a <strong>past draw date</strong> (draw date before today).</li>
+    <li><strong>Expected:</strong> The result card immediately shows either <span class="badge badge-green">Won</span> or <span class="badge badge-red">Not Won</span> — no manual action needed.</li>
+    <li>Check the ticket in History — the same status badge should appear on the card.</li>
+  </ol>
+
+  <h2 class="sec-h">Test 5 — Result Checking (Future Draw)</h2>
+  <ol class="steps">
+    <li>Upload a ticket with a <strong>future draw date</strong>.</li>
+    <li><strong>Expected:</strong> The result card shows <span class="badge badge-grey">Pending</span>.</li>
+    <li>To manually trigger a check: call <code>POST http://localhost:3001/api/results/check/:ticketId</code> using a tool like Postman or curl.</li>
+    <li>Alternatively, wait for the hourly cron job to run automatically.</li>
+  </ol>
+
+  <h2 class="sec-h">Test 6 — Predictive Analysis</h2>
+  <ol class="steps">
+    <li>Navigate to <strong>http://localhost:5173/predict</strong>.</li>
+    <li><strong>Expected:</strong> Three model cards load, each showing a 4D predicted number and 12 TOTO balls.</li>
+    <li>Click <strong>▼ About this model</strong> — verify the documentation panel expands with all fields (why, assumptions, methodology, evaluation, confidence, disclaimer).</li>
+    <li>Click <strong>Regenerate</strong> — numbers should change with each click.</li>
+    <li>Switch between <strong>4D</strong> and <strong>TOTO</strong> tabs — both should display different prediction formats.</li>
+  </ol>
+
+  <h2 class="sec-h">Test 7 — Push Notifications (Web)</h2>
+  <ol class="steps">
+    <li>Open the web app. If not yet prompted, navigate to <strong>Settings</strong> and click <strong>Enable Notifications</strong>.</li>
+    <li>Allow the browser notification permission when the browser dialog appears.</li>
+    <li>Manually trigger a result check for a past ticket via the API or click <strong>Check My Ticket</strong> on a history card.</li>
+    <li><strong>Expected:</strong> A browser push notification fires with the ticket outcome.</li>
+  </ol>
+
+  <h2 class="sec-h">Test 8 — Mobile Ticket Scan</h2>
+  <ol class="steps">
+    <li>Start ngrok: <code>npx ngrok http 3001</code> and update all mobile API URLs.</li>
+    <li>Run <code>npx expo start</code> and scan the QR code with Expo Go.</li>
+    <li>Tap the <strong>Scan</strong> tab → <strong>Take Photo</strong> → photograph a lottery ticket.</li>
+    <li><strong>Expected:</strong> Result card appears in the app and a local push notification fires.</li>
+    <li>Tap <strong>History</strong> tab — the new ticket should appear at the top.</li>
+  </ol>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SECTION 9 — TROUBLESHOOTING
+══════════════════════════════════════════════════════════════════ -->
+<div class="content-page section-page" id="s9">
+  <h1 class="page-h"><span class="sec-num">9</span> Troubleshooting</h1>
+
+  <h2 class="sec-h">"Upload failed. Make sure backend is running."</h2>
+  <ul>
+    <li>Verify the backend is running: open <code>http://localhost:3001</code> in the browser.</li>
+    <li>Check for CORS errors in the browser developer console (F12 → Console tab).</li>
+    <li>For mobile: ensure the ngrok URL is correct, has been updated in all source files, and that ngrok is currently running.</li>
+  </ul>
+
+  <h2 class="sec-h">OCR Returns No Numbers / Wrong Numbers</h2>
+  <ul>
+    <li>The image may be blurry, low contrast, or at an angle. Use a flat, well-lit photo.</li>
+    <li>Check the backend terminal for <code>[upload] OCR raw text:</code> log to see exactly what OCR extracted.</li>
+    <li>The system uses OCR.Space as the primary engine and Tesseract as fallback — check for API limit errors in the terminal.</li>
+    <li>If using the free OCR.Space key (<code>helloworld</code>), it has a 25,000 requests/month limit.</li>
+  </ul>
+
+  <h2 class="sec-h">"Could not load tickets" (History page)</h2>
+  <ul>
+    <li>The backend must be running and reachable.</li>
+    <li>Check that <code>serviceAccountKey.json</code> exists in the <code>backend/</code> folder.</li>
+    <li>Verify Firestore Database is enabled in Firebase Console (not just created — must be in Native mode).</li>
+    <li>Open browser Developer Tools → Network tab → look for the failing API request and inspect the error response.</li>
+  </ul>
+
+  <h2 class="sec-h">Past Results Show "Demo Data"</h2>
+  <ul>
+    <li>This is expected and by design. Singapore Pools may block automated scraping (bot detection).</li>
+    <li>Mock data is automatically served as a fallback, clearly labelled "Demo data".</li>
+    <li>For production use, a licensed Singapore Pools data feed or paid proxy service would be required.</li>
+  </ul>
+
+  <h2 class="sec-h">Cron Job Not Running / Results Not Auto-Updating</h2>
+  <ul>
+    <li>The backend process must stay running continuously — do not close the terminal.</li>
+    <li>The cron runs every hour on the backend. To test immediately, call:<br/>
+    <code>POST http://localhost:3001/api/results/check/:ticketId</code></li>
+  </ul>
+
+  <h2 class="sec-h">Expo Push Notifications Not Received</h2>
+  <ul>
+    <li>Check that notification permissions are granted in the device Settings app.</li>
+    <li>Physical device required — simulators and emulators may not receive push notifications.</li>
+    <li>Expo Go has limited background push support; a standalone Expo build is required for full production push.</li>
+    <li>Polling happens every 60 seconds in the foreground — notifications appear when the app is open.</li>
+  </ul>
+
+  <h2 class="sec-h">Port 3001 Already in Use</h2>
+  <pre># Windows — find and kill the process holding port 3001
+netstat -ano | findstr :3001
+taskkill /PID &lt;pid&gt; /F
+
+# Then restart the backend
+node server.js</pre>
+
+  <h2 class="sec-h">Mobile App Cannot Connect to Backend</h2>
+  <ul>
+    <li>Physical devices cannot reach <code>localhost</code> — ngrok is required.</li>
+    <li>Ensure the ngrok tunnel is active (check the ngrok terminal window).</li>
+    <li>Confirm the ngrok HTTPS URL is updated in all 6 mobile source files.</li>
+    <li>The <code>ngrok-skip-browser-warning: true</code> header is already set in all mobile API calls — this is required for ngrok free tier.</li>
+  </ul>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SECTION 10 — KNOWN ISSUES
+══════════════════════════════════════════════════════════════════ -->
+<div class="content-page section-page" id="s10">
+  <h1 class="page-h"><span class="sec-num">10</span> Known Issues</h1>
+
+  <table>
+    <tr><th>Issue</th><th>Status</th><th>Impact</th><th>Workaround</th></tr>
+    <tr>
+      <td>Singapore Pools scraper may be blocked by bot detection</td>
+      <td><span class="badge badge-grey">Known</span></td>
+      <td>Past Results shows demo data instead of live data</td>
+      <td>Mock data fallback is automatic and labelled clearly</td>
+    </tr>
+    <tr>
+      <td>Firebase Storage disabled (requires Blaze plan)</td>
+      <td><span class="badge badge-grey">Known</span></td>
+      <td>Ticket history cards show game-type icon instead of photo thumbnail</td>
+      <td>All features work fully; enable Storage by upgrading Firebase plan</td>
+    </tr>
+    <tr>
+      <td>OCR accuracy varies with image quality</td>
+      <td><span class="badge badge-grey">Known</span></td>
+      <td>Numbers may be missed or misread on poor-quality scans</td>
+      <td>Use high-resolution, well-lit, flat photos</td>
+    </tr>
+    <tr>
+      <td>Expo background polling limited in Expo Go</td>
+      <td><span class="badge badge-grey">Known</span></td>
+      <td>Push notifications only received while app is open</td>
+      <td>Build a standalone Expo app for full background push support</td>
+    </tr>
+    <tr>
+      <td>TOTO System 12 expansion (924 combos) write is async</td>
+      <td><span class="badge badge-grey">Minor</span></td>
+      <td>Brief delay before all combinations appear in History detail modal</td>
+      <td>Wait a few seconds and refresh the History page</td>
+    </tr>
+    <tr>
+      <td>ngrok URL changes each session (free plan)</td>
+      <td><span class="badge badge-grey">Known</span></td>
+      <td>Mobile app loses connection to backend after ngrok restart</td>
+      <td>Update the 6 API URL constants in mobile source files; or use ngrok paid plan for a static URL</td>
+    </tr>
+  </table>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SECTION 11 — DATA PRIVACY & SECURITY
+══════════════════════════════════════════════════════════════════ -->
+<div class="content-page section-page" id="s11">
+  <h1 class="page-h"><span class="sec-num">11</span> Data Privacy &amp; Security</h1>
+
+  <h2 class="sec-h">What Data Is Collected</h2>
+  <table>
+    <tr><th>Data</th><th>Where Stored</th><th>Retention</th></tr>
+    <tr><td>Extracted ticket data (numbers, dates, bet type)</td><td>Firebase Firestore</td><td>Until deleted by user</td></tr>
+    <tr><td>Ticket serial numbers</td><td>Firebase Firestore</td><td>Until deleted by user</td></tr>
+    <tr><td>OCR raw text (for debugging)</td><td>Firebase Firestore</td><td>Until deleted by user</td></tr>
+    <tr><td>Device push token</td><td>Backend memory only (not persisted)</td><td>Session only</td></tr>
+  </table>
+
+  <h2 class="sec-h">What Is NOT Collected</h2>
+  <ul>
+    <li>Personal identity information (name, NRIC, email, phone number)</li>
+    <li>Financial account or payment details</li>
+    <li>Device location data</li>
+    <li>Ticket images (Firebase Storage disabled in this build)</li>
+  </ul>
+
+  <h2 class="sec-h">Security Practices</h2>
+  <ul>
+    <li><code>serviceAccountKey.json</code> is excluded from Git via <code>.gitignore</code>.</li>
+    <li>The <code>.env</code> file is excluded from Git — API keys are never committed.</li>
+    <li>The ngrok URL changes every session — never commit it to source control.</li>
+    <li>All API calls from the mobile app use HTTPS (via ngrok).</li>
+    <li>JWT-based authentication middleware is implemented for protected endpoints.</li>
+  </ul>
+
+  <h2 class="sec-h">Recommended Firestore Rules (Production)</h2>
+  <pre>rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /tickets/{ticket} {
+      allow read, write: if request.auth != null;
+    }
+    match /results_4d/{doc} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+    match /results_toto/{doc} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+  }
+}</pre>
+
+  <h2 class="sec-h">Ethics Statement</h2>
+  <div class="box warn">
+    <span class="box-icon">⚠️</span>
+    <div>
+      This application is built for <strong>educational and personal tracking purposes only</strong>. It does not encourage, facilitate, or promote gambling. All predictive analysis features include prominent disclaimers stating that lottery draws are random and predictions carry no predictive validity. The application does not provide odds calculations, financial advice, or any guarantee of winning outcomes.
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SECTION 12 — ARCHITECTURE
+══════════════════════════════════════════════════════════════════ -->
+<div class="content-page section-page" id="s12">
+  <h1 class="page-h"><span class="sec-num">12</span> Architecture Overview</h1>
+
+  <div class="arch">
+    <pre style="color:#c9d1d9; font-size:11px; line-height:1.5">
+┌─────────────────────────────────────────────────────────────────────┐
+│                        SGLottery System                             │
+├──────────────────┬────────────────────┬─────────────────────────────┤
+│   Web App        │   Mobile App       │       Backend API           │
+│  (Vite + React)  │  (Expo + RN)       │   (Express + Node.js)       │
+│                  │                    │                             │
+│  / Home          │  🏠 Home           │  POST /api/tickets/upload   │
+│  /upload         │  📷 Scan           │  GET  /api/tickets          │
+│  /history        │  📋 History        │  GET  /api/tickets/:id      │
+│  /results        │  📊 Results        │  DELETE /api/tickets/:id    │
+│  /predict        │  🔮 Predict        │  GET  /api/results/4d       │
+│  /settings       │                    │  GET  /api/results/toto     │
+│                  │                    │  POST /api/results/check/:id│
+│                  │                    │  GET  /api/predict          │
+├──────────────────┴────────────────────┴─────────────────────────────┤
+│                         Services Layer                              │
+│  scraper.js      → Singapore Pools web scraping + mock fallback    │
+│  combinations.js → TOTO system bet expansion C(n,6)                │
+│  matcher.js      → Ticket vs official result comparison            │
+│  predictor.js    → 3 statistical prediction models                 │
+├─────────────────────────────────────────────────────────────────────┤
+│                     Data Layer (Firebase)                           │
+│  Firestore: tickets · results_4d · results_toto                    │
+│  Storage:   disabled (requires Blaze plan)                         │
+├─────────────────────────────────────────────────────────────────────┤
+│  Background Jobs                                                    │
+│  Cron (hourly):   poll all pending future-draw tickets             │
+│  Cron (daily 23:00): refresh Singapore Pools results               │
+└─────────────────────────────────────────────────────────────────────┘</pre>
+  </div>
+
+  <h2 class="sec-h">Technology Stack</h2>
+  <table>
+    <tr><th>Layer</th><th>Technology</th><th>Version</th><th>Purpose</th></tr>
+    <tr><td>Backend</td><td>Node.js + Express</td><td>v24 / v5</td><td>REST API, OCR processing, cron jobs</td></tr>
+    <tr><td>OCR (Primary)</td><td>OCR.Space API</td><td>v2</td><td>Cloud OCR with table/text detection</td></tr>
+    <tr><td>OCR (Fallback)</td><td>Tesseract.js</td><td>5.x</td><td>Local OCR with watermark removal</td></tr>
+    <tr><td>Image Processing</td><td>Sharp</td><td>0.33</td><td>Watermark removal, resizing, greyscale</td></tr>
+    <tr><td>Database</td><td>Firebase Firestore</td><td>Admin SDK 13</td><td>NoSQL document storage</td></tr>
+    <tr><td>Web Frontend</td><td>React 19 + Vite</td><td>19 / 7</td><td>SPA with React Router v7</td></tr>
+    <tr><td>Mobile Frontend</td><td>Expo SDK 54 + React Native</td><td>0.76</td><td>Cross-platform iOS/Android app</td></tr>
+    <tr><td>Routing (Mobile)</td><td>expo-router</td><td>4.x</td><td>File-based routing for Expo</td></tr>
+    <tr><td>Notifications (Web)</td><td>Browser Notification API</td><td>—</td><td>Push notifications in browser</td></tr>
+    <tr><td>Notifications (Mobile)</td><td>expo-notifications</td><td>0.29</td><td>Local + remote push notifications</td></tr>
+  </table>
+
+  <h2 class="sec-h">Folder Structure</h2>
+  <pre>4d-toto-app/
+├── backend/
+│   ├── server.js              ← Express entry point + cron jobs
+│   ├── firebase.js            ← Firebase Admin SDK init
+│   ├── routes/
+│   │   ├── tickets.js         ← Upload, list, detail, delete endpoints
+│   │   ├── results.js         ← 4D/TOTO results scraping endpoints
+│   │   └── predict.js         ← Prediction model endpoints
+│   ├── services/
+│   │   ├── scraper.js         ← Singapore Pools scraper + fallback
+│   │   ├── combinations.js    ← C(n,6) system bet expansion
+│   │   ├── matcher.js         ← Ticket vs result comparison
+│   │   └── predictor.js       ← 3 statistical models
+│   ├── middleware/auth.js      ← JWT auth middleware
+│   ├── serviceAccountKey.json ← Firebase key (git-ignored)
+│   └── .env                   ← Environment variables (git-ignored)
+│
+├── web-app/
+│   └── src/
+│       ├── App.jsx            ← Router + Navbar + Footer
+│       ├── index.css          ← Full design system CSS
+│       ├── pages/             ← Page wrappers
+│       ├── views/             ← Feature view components
+│       │   ├── history/       ← Ticket history + detail modal
+│       │   ├── predict/       ← Prediction model cards
+│       │   ├── results/       ← Past results browser
+│       │   └── upload/        ← Upload + OCR result card
+│       ├── presenters/        ← Business logic (MVP pattern)
+│       ├── services/          ← API client + notification scheduler
+│       └── components/        ← Shared UI components
+│
+├── mobile-app/
+│   └── app/(tabs)/
+│       ├── index.tsx          ← Home tab
+│       ├── upload.tsx         ← Scan tab
+│       ├── history.tsx        ← History tab
+│       ├── results.tsx        ← Results tab
+│       └── predict.tsx        ← Predict tab
+│
+├── USER_MANUAL.md             ← Source manual (Markdown)
+└── USER_MANUAL.html           ← This document</pre>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SECTION 13 — API REFERENCE
+══════════════════════════════════════════════════════════════════ -->
+<div class="content-page section-page" id="s13">
+  <h1 class="page-h"><span class="sec-num">13</span> API Reference</h1>
+
+  <p>Base URL: <code class="inline">http://localhost:3001</code></p>
+
+  <h2 class="sec-h">POST /api/tickets/upload</h2>
+  <p>Upload a ticket image for OCR processing and result checking.</p>
+  <table>
+    <tr><th>Property</th><th>Value</th></tr>
+    <tr><td>Content-Type</td><td><code>multipart/form-data</code></td></tr>
+    <tr><td>Field name</td><td><code>ticket</code> (image file)</td></tr>
+  </table>
+  <p><strong>Response (200):</strong></p>
+  <pre>{
+  "success": true,
+  "ticketId": "abc123",
+  "gameType": "TOTO",
+  "drawDate": "06/03/2026",
+  "numbers": ["05  15  22  33  41  46"],
+  "betType": "System 8",
+  "systemSize": 8,
+  "combinationCount": 28,
+  "expandedCombinationCount": 28,
+  "drawType": "past",
+  "comparison": { "won": false, "matches": [], "prizeTier": null }
+}</pre>
+
+  <h2 class="sec-h">GET /api/tickets</h2>
+  <p>List all tickets.</p>
+  <table>
+    <tr><th>Query Param</th><th>Type</th><th>Description</th></tr>
+    <tr><td><code>gameType</code></td><td>string</td><td>Filter by <code>4D</code> or <code>TOTO</code></td></tr>
+    <tr><td><code>limit</code></td><td>number</td><td>Max results (default 50)</td></tr>
+  </table>
+
+  <h2 class="sec-h">GET /api/tickets/:id</h2>
+  <p>Get a single ticket by Firestore document ID.</p>
+
+  <h2 class="sec-h">DELETE /api/tickets/:id</h2>
+  <p>Delete a ticket. Requires authentication header.</p>
+
+  <h2 class="sec-h">POST /api/results/check/:ticketId</h2>
+  <p>Manually trigger result checking for a single ticket. Fetches the draw result and updates <code>resultStatus</code>, <code>prizeTier</code>, and <code>winMatches</code> in Firestore.</p>
+
+  <h2 class="sec-h">GET /api/results/4d</h2>
+  <p>Get past 4D draw results.</p>
+  <table>
+    <tr><th>Query Param</th><th>Type</th><th>Description</th></tr>
+    <tr><td><code>date</code></td><td>string</td><td>Filter by date DD/MM/YYYY</td></tr>
+    <tr><td><code>limit</code></td><td>number</td><td>Max results (default 20)</td></tr>
+  </table>
+
+  <h2 class="sec-h">GET /api/results/toto</h2>
+  <p>Get past TOTO draw results. Same query params as 4D.</p>
+
+  <h2 class="sec-h">GET /api/predict</h2>
+  <p>Generate predictions from all 3 models.</p>
+  <pre>{
+  "predictions": [
+    {
+      "model": "Digit Frequency Analysis",
+      "modelId": "frequency",
+      "predicted4D": "3829",
+      "predictedTOTO": [4, 7, 15, 22, 33, 36, 41, 44, 46, 47, 48, 49],
+      "confidenceScore": 0.12,
+      "why": "...",
+      "assumptions": "...",
+      "methodology": "...",
+      "evaluation": "...",
+      "confidence": "...",
+      "disclaimer": "..."
+    }
+  ],
+  "dataPoints": { "fourd": 50, "toto": 100 },
+  "generatedAt": "2026-03-16T10:00:00.000Z",
+  "disclaimer": "For educational purposes only."
+}</pre>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SECTION 14 — CHANGELOG
+══════════════════════════════════════════════════════════════════ -->
+<div class="content-page section-page" id="s14">
+  <h1 class="page-h"><span class="sec-num">14</span> Changelog &amp; Development History</h1>
+
+  <div class="changelog-entry">
+    <span class="cl-ver">v2.0</span><span class="cl-date">March 2026</span>
+    <h4>Complete UI Redesign + Notification System + Prediction Model Documentation</h4>
+    <ul>
+      <li>Redesigned colour system: grey/white dominant with blue (<code>#4a8fff</code>) as the single accent colour — removed all red, gold, cyan and purple accents for a cleaner, more elegant look.</li>
+      <li>Fixed notification status badge: now correctly shows <strong>On</strong> (green) when permission is granted and at least one game toggle is active, and <strong>Off</strong> (red) when all game toggles are disabled.</li>
+      <li>Fixed notification scheduler: <code>checkAndNotify()</code> is now called at timer execution instead of deprecated <code>fire()</code>.</li>
+      <li>Added expandable "About this model" documentation panel to each prediction model card — shows why, assumptions, methodology, evaluation, confidence, and disclaimer.</li>
+      <li>Added ticket thumbnail support in History cards (shows actual photo when available via Firebase Storage; falls back to game-type icon).</li>
+      <li>Fixed serial number OCR extraction: now correctly reads the serial number from the line immediately after the AM/PM timestamp, ignoring time values.</li>
+      <li>Disabled Firebase Storage image upload (requires Blaze plan) — silently removed from upload flow.</li>
+      <li>Changed Android notification light colour from red to blue (<code>#4a8fff</code>).</li>
+      <li>Updated User Manual model names to match actual implementation: Digit Frequency Analysis · Hot &amp; Cold Number Analysis · Odd &amp; Even / Jackpot Pattern Analysis.</li>
+    </ul>
+  </div>
+
+  <div class="changelog-entry">
+    <span class="cl-ver">v1.5</span><span class="cl-date">February 2026</span>
+    <h4>Mobile App + OCR Improvements + Push Notifications</h4>
+    <ul>
+      <li>Built full mobile app (Expo SDK 54) with 5-tab layout: Home · Scan · History · Results · Predict.</li>
+      <li>Integrated OCR.Space API as primary OCR engine with Tesseract.js as fallback.</li>
+      <li>Implemented Singapore Pools watermark removal using HSV colour-space processing — saturated red/pink pixels replaced with white before OCR, preserving black ticket text.</li>
+      <li>Added expo-notifications push notification system with 60-second polling for pending ticket results.</li>
+      <li>Implemented deduplication: identical tickets (same fingerprint) are rejected on re-upload.</li>
+      <li>Added JWT authentication middleware for protected API endpoints.</li>
+      <li>Upgraded TOTO System Bet expansion to handle all System 7–12 combinations (up to 924 for System 12).</li>
+    </ul>
+  </div>
+
+  <div class="changelog-entry">
+    <span class="cl-ver">v1.2</span><span class="cl-date">January 2026</span>
+    <h4>Predictive Analysis + Past Results Browser</h4>
+    <ul>
+      <li>Implemented three statistical prediction models: Digit Frequency, Hot &amp; Cold, Odd &amp; Even Pattern.</li>
+      <li>Predictions return TOTO System 12 format (12 numbers, C(12,6) = 924 combinations).</li>
+      <li>Each model returns full documentation fields: why, assumptions, methodology, evaluation, confidence, disclaimer.</li>
+      <li>Built Singapore Pools scraper for 4D and TOTO past results with mock data fallback.</li>
+      <li>Added daily cron job (23:00) to refresh result data from Singapore Pools.</li>
+      <li>Built Past Results view for web and mobile with live refresh capability.</li>
+    </ul>
+  </div>
+
+  <div class="changelog-entry">
+    <span class="cl-ver">v1.1</span><span class="cl-date">December 2025</span>
+    <h4>Result Checking + History + Web App</h4>
+    <ul>
+      <li>Built full web app (Vite + React 19 + React Router v7) with 5 pages: Home · Scan · History · Results · Predict · Settings.</li>
+      <li>Implemented automated result checking against Singapore Pools for past-draw tickets.</li>
+      <li>Added hourly cron job to poll pending future-draw tickets.</li>
+      <li>Built History page with filter tabs (All/4D/TOTO/Won/Pending/System), sort options, stats bar, and detail modal.</li>
+      <li>Added browser push notification system (Web Notification API + localStorage scheduler).</li>
+      <li>Implemented Settings page with notification toggles, upcoming draw calendar, and schedule management.</li>
+    </ul>
+  </div>
+
+  <div class="changelog-entry">
+    <span class="cl-ver">v1.0</span><span class="cl-date">November 2025</span>
+    <h4>Initial Release — Core Upload + OCR + Firestore</h4>
+    <ul>
+      <li>Express.js backend with Tesseract OCR and Firebase Admin SDK.</li>
+      <li>POST /api/tickets/upload — accepts ticket image, runs OCR, saves to Firestore.</li>
+      <li>Supports 4D (Ordinary, iBet, Roll, System 5/6/7) and TOTO (Standard, System 7–12, Quick Pick) ticket types.</li>
+      <li>Extracts: game type, draw date, purchase date, numbers, bet type, system size, serial number, amount paid.</li>
+      <li>Drag-and-drop upload zone on web with OCR result card display.</li>
+      <li>GET /api/tickets — list all tickets with deduplication and filtering.</li>
+      <li>Firebase Firestore as primary data store with service account key authentication.</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     FOOTER
+══════════════════════════════════════════════════════════════════ -->
+<div class="page-footer">
+  <span>SGLottery User Manual — v2.0 · March 2026</span>
+  <span>For assessment and internal use only · Not for redistribution</span>
+</div>
+
+</body>
+</html>

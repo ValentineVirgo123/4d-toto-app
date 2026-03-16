@@ -10,14 +10,14 @@ import { useResults } from '../../presenters/ResultsPresenter';
 import type { FourDResult, TOTOResult } from '../../entities/DrawResult';
 
 const C = {
-  bg:      '#0d1117',
-  surface: '#161b22',
-  surface2:'#0d1117',
-  border:  '#21262d',
+  bg:      '#0f1117',
+  surface: '#181c2a',
+  surface2:'#0f1117',
+  border:  '#2a2f45',
   border2: '#30363d',
-  red:     '#e53935',
-  purple:  '#7c3aed',
-  gold:    '#f59e0b',
+  red:     '#4a8fff',
+  purple:  '#7b9fff',
+  gold:    '#4a8fff',
   green:   '#22c55e',
   text:    '#f0f6fc',
   text2:   '#c9d1d9',
@@ -52,7 +52,7 @@ function FourDCard({ item, highlightNums = [] }: { item: FourDResult; highlightN
       {/* Header */}
       <View style={cs.cardHead}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-          <View style={[cs.badge, { backgroundColor: '#e5393520', borderColor: C.red }]}>
+          <View style={[cs.badge, { backgroundColor: '#4a8fff20', borderColor: C.red }]}>
             <Text style={[cs.badgeTxt, { color: C.red }]}>4D</Text>
           </View>
           <Text style={cs.drawDate}>{item.drawDate}</Text>
@@ -506,7 +506,7 @@ export function ResultsView() {
                 <Text style={[cs.tabTxt, tab === '4d' && { color: C.red }]}>4D</Text>
               </TouchableOpacity>
               <TouchableOpacity style={[cs.tab, tab === 'toto' && cs.tabTOTO]} onPress={() => setTab('toto')}>
-                <Text style={[cs.tabTxt, tab === 'toto' && { color: '#a78bfa' }]}>TOTO</Text>
+                <Text style={[cs.tabTxt, tab === 'toto' && { color: '#7b9fff' }]}>TOTO</Text>
               </TouchableOpacity>
             </View>
 
@@ -584,8 +584,8 @@ const cs = StyleSheet.create({
 
   tabRow: { flexDirection: 'row', gap: 10, paddingHorizontal: 20, marginBottom: 16 },
   tab:    { flex: 1, paddingVertical: 10, borderRadius: 10, borderWidth: 1, borderColor: C.border2, alignItems: 'center' },
-  tab4D:  { borderColor: C.red,    backgroundColor: '#e5393520' },
-  tabTOTO:{ borderColor: '#7c3aed', backgroundColor: '#7c3aed20' },
+  tab4D:  { borderColor: C.red,    backgroundColor: '#4a8fff20' },
+  tabTOTO:{ borderColor: '#7b9fff', backgroundColor: '#7b9fff20' },
   tabTxt: { fontWeight: '700', color: C.muted, fontSize: 15 },
 
   pastHeader: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 20, paddingTop: 20, paddingBottom: 10 },
@@ -624,10 +624,10 @@ const cs = StyleSheet.create({
   grayBar:      { backgroundColor: C.border, paddingHorizontal: 14, paddingVertical: 7 },
   grayBarTxt:   { fontSize: 11, fontWeight: '700', color: C.muted, textTransform: 'uppercase', letterSpacing: 0.6 },
   ballsRow:     { flexDirection: 'row', flexWrap: 'wrap', gap: 8, padding: 14 },
-  ball:         { width: 36, height: 36, borderRadius: 18, backgroundColor: '#7c3aed22', borderWidth: 2, borderColor: '#7c3aed', alignItems: 'center', justifyContent: 'center' },
-  ballAddl:     { backgroundColor: '#f59e0b22', borderColor: C.gold },
+  ball:         { width: 36, height: 36, borderRadius: 18, backgroundColor: '#7b9fff22', borderWidth: 2, borderColor: '#7b9fff', alignItems: 'center', justifyContent: 'center' },
+  ballAddl:     { backgroundColor: '#4a8fff22', borderColor: C.gold },
   ballMatch:    { borderColor: C.green, backgroundColor: 'rgba(34,197,94,0.15)' },
-  ballTxt:      { fontSize: 12, fontWeight: '800', color: '#a78bfa' },
+  ballTxt:      { fontSize: 12, fontWeight: '800', color: '#7b9fff' },
   group1Row:    { padding: 14 },
   group1Txt:    { fontSize: 20, fontWeight: '900', color: C.gold, textAlign: 'center' },
   sharesRow:    { flexDirection: 'row', paddingHorizontal: 14, paddingVertical: 8 },
@@ -700,7 +700,7 @@ const ss = StyleSheet.create({
   checkEntryWon:  { backgroundColor: 'rgba(34,197,94,0.07)', borderColor: 'rgba(34,197,94,0.3)' },
   checkEntryLost: { backgroundColor: 'rgba(107,142,181,0.06)', borderColor: 'rgba(107,142,181,0.2)' },
   checkNum:    { fontSize: 18, fontWeight: '900', fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace', color: C.text, minWidth: 50 },
-  checkTag:    { paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4, backgroundColor: 'rgba(245,158,11,0.15)', borderWidth: 1, borderColor: 'rgba(245,158,11,0.3)' },
+  checkTag:    { paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4, backgroundColor: 'rgba(74,143,255,0.15)', borderWidth: 1, borderColor: 'rgba(74,143,255,0.3)' },
   checkTagTxt: { fontSize: 10, fontWeight: '700', color: C.gold },
   checkStatus: { fontSize: 13, fontWeight: '600', flex: 1 },
   drawLabel:   { fontSize: 11, fontWeight: '700', color: C.muted, textTransform: 'uppercase', letterSpacing: 0.6, marginBottom: 8 },

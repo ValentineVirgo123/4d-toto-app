@@ -13,17 +13,17 @@ import type { Ticket } from '../../entities/Ticket';
 
 // ── Design tokens ─────────────────────────────────────────────────────────────
 const C = {
-  bg:      '#010e1f',
-  surface: '#011428',
-  surface2:'#021e38',
-  border:  '#0a2448',
-  red:     '#24488D',
-  purple:  '#FBC63C',
-  gold:    '#FBC63C',
+  bg:      '#0f1117',
+  surface: '#181c2a',
+  surface2:'#1e2235',
+  border:  '#2a2f45',
+  red:     '#4a8fff',
+  purple:  '#4a8fff',
+  gold:    '#4a8fff',
   green:   '#22c55e',
   text:    '#f0f6fc',
   text2:   '#c9d1d9',
-  muted:   '#6b8eb5',
+  muted:   '#8b9bbf',
   white:   '#ffffff',
 };
 
@@ -406,7 +406,7 @@ const swipe = StyleSheet.create({
   deleteBtn: {
     width: 88,
     height: '100%',
-    backgroundColor: '#e53935',
+    backgroundColor: '#4a8fff',
     justifyContent: 'center',
     alignItems: 'center',
     borderRadius: 12,
@@ -493,7 +493,7 @@ export function HistoryView() {
           <TouchableOpacity style={v.sortBtn} onPress={() => setShowSort(s => !s)}>
             <Text style={v.sortBtnText}>⇅ {SORTS.find(s => s.key === sort)?.label}</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={v.scanBtn} onPress={() => router.push('/upload' as any)}>
+          <TouchableOpacity style={v.scanBtn} onPress={() => router.push('/tabs/upload' as any)}>
             <Text style={v.scanBtnText}>+ Scan</Text>
           </TouchableOpacity>
         </View>
@@ -555,7 +555,7 @@ export function HistoryView() {
           <Text style={[v.stateTitle, { marginTop: 16 }]}>{filter === 'All' ? 'No tickets yet' : `No ${filter} tickets`}</Text>
           <Text style={v.stateMsg}>{filter === 'All' ? 'Scan your first 4D or TOTO ticket to get started.' : 'Try a different filter.'}</Text>
           {filter === 'All' && (
-            <TouchableOpacity style={v.scanLarge} onPress={() => router.push('/upload' as any)}>
+            <TouchableOpacity style={v.scanLarge} onPress={() => router.push('/tabs/upload' as any)}>
               <Text style={v.scanLargeText}>📸  Scan a Ticket</Text>
             </TouchableOpacity>
           )}
@@ -786,7 +786,7 @@ const bs = StyleSheet.create({
   },
   deleteBtn: {
     marginTop: 18,
-    backgroundColor: '#e53935',
+    backgroundColor: '#4a8fff',
     borderRadius: 999,
     paddingVertical: 10,
     alignItems: 'center',

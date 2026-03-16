@@ -13,6 +13,7 @@ const db    = admin.firestore();
 
 const { scrape4DResults, scrapeTOTOResults, ensureResultsPopulated } = require('./services/scraper');
 const { compare4DTicket, compareTOTOTicket, classifyDrawDate } = require('./services/matcher');
+const { sendPushToAll } = require('./services/pushNotifier');
 
 const app = express();
 app.use(cors());
@@ -23,6 +24,7 @@ app.use('/api/auth',    require('./routes/auth'));
 app.use('/api/tickets', require('./routes/tickets'));
 app.use('/api/results', require('./routes/results'));
 app.use('/api/predict', require('./routes/predict'));
+app.use('/api/devices', require('./routes/devices'));
 
 app.get('/', (req, res) => {
   res.json({
@@ -77,28 +79,38 @@ cron.schedule('0 * * * *', async () => {
           ? compare4DTicket(ticket, official)
           : compareTOTOTicket(ticket, official);
 
+        const pushTitle = comparison.won ? '🎉 You won!' : 'Draw result available';
+        const pushBody  = comparison.won
+          ? comparison.isSystemBet && comparison.totalWinningCombos > 1
+              ? `Your System ${comparison.systemSize} ticket has ${comparison.totalWinningCombos} winning combination(s)! Best prize: ${comparison.prizeTier}`
+              : `Your ${ticket.gameType} ticket won ${comparison.prizeTier}!`
+          : comparison.isSystemBet
+              ? `Your System ${comparison.systemSize} ticket (${comparison.totalCombosChecked} combos) for ${ticket.drawDate} did not win.`
+              : `Your ${ticket.gameType} ticket for ${ticket.drawDate} did not win.`;
+
         await doc.ref.update({
           resultStatus:  comparison.won ? 'won' : 'not_won',
           prizeTier:     comparison.prizeTier || null,
           winMatches:    comparison.matches || [],
           drawType:      'past',
           resultChecked: admin.firestore.FieldValue.serverTimestamp(),
-          // Store notification data for client polling
+          // Store notification data for client polling fallback
           notification: {
-            title:   comparison.won ? '🎉 You won!' : 'Draw result available',
-            body:    comparison.won
-              ? comparison.isSystemBet && comparison.totalWinningCombos > 1
-                  ? `Your System ${comparison.systemSize} ticket has ${comparison.totalWinningCombos} winning combination(s)! Best prize: ${comparison.prizeTier}`
-                  : `Your ${ticket.gameType} ticket won ${comparison.prizeTier}!`
-              : comparison.isSystemBet
-                  ? `Your System ${comparison.systemSize} ticket (${comparison.totalCombosChecked} combos) for ${ticket.drawDate} did not win.`
-                  : `Your ${ticket.gameType} ticket for ${ticket.drawDate} did not win.`,
-            won:     comparison.won,
+            title:    pushTitle,
+            body:     pushBody,
+            won:      comparison.won,
             prizeTier: comparison.prizeTier,
             drawDate:  ticket.drawDate,
             createdAt: new Date().toISOString(),
-            read:    false,
+            read:      false,
           },
+        });
+
+        // Send real push notification to all registered devices
+        await sendPushToAll(pushTitle, pushBody, {
+          ticketId: doc.id,
+          won:      comparison.won,
+          drawDate: ticket.drawDate,
         });
 
         console.log(`[cron] Ticket ${doc.id}: ${comparison.won ? 'WON ' + comparison.prizeTier : 'Not won'}`);
