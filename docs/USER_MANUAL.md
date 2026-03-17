@@ -985,7 +985,7 @@ The backend tries three OCR engines in priority order. Understanding each one is
 **Why Google Vision is not working** (`backend/.env` → `GOOGLE_VISION_KEY_PATH`):
 The `.env` file has a `GOOGLE_VISION_KEY_PATH` variable and there is a `google-vision-key.json` placeholder, but **no code in `tickets.js` ever calls the Vision API**. The billing account issue means: even if the code were wired up, every Vision API call would return a 403 "billing not enabled" error. This is a **known unresolved issue** — see Section 12 Known Issues.
 
-**The Tesseract fallback pipeline** (`backend/routes/tickets.js` · Lines 348–401):
+**The Tesseract fallback pipeline** (`backend/routes/tickets.js` · Lines 401–453):
 When OCR.Space fails or is rate-limited, the backend:
 1. Upscales the image to at least 2400px using `sharp`
 2. Runs an **HSV watermark removal** pass — identifies red/pink pixels (hue < 30° or > 330°, saturation > 0.18) and replaces them with white
@@ -1027,7 +1027,7 @@ const gameType = isTOTO ? 'TOTO' : '4D'; // everything else is 4D
 ```
 
 > ---
-> ### 🔑 Key Lines — `backend/routes/tickets.js` · Lines 89 – 96 · 4D number extraction (alphabet loop)
+> ### 🔑 Key Lines — `backend/routes/tickets.js` · Lines 100 – 107 · 4D number extraction (alphabet loop)
 >
 > **What it does:** Extracts 4-digit numbers from the OCR text by iterating A→Z.
 > Singapore Pools tickets always label numbers as "A. 5888", "B. 4392", etc.
@@ -1036,7 +1036,7 @@ const gameType = isTOTO ? 'TOTO' : '4D'; // everything else is 4D
 >
 > **How to navigate:**
 > 1. Open `backend/routes/tickets.js`
-> 2. Press `Ctrl+G` → type `89` → Enter
+> 2. Press `Ctrl+G` → type `100` → Enter
 >    — OR — search for `for (let code = 65`
 > ---
 
@@ -1055,7 +1055,7 @@ for (let code = 65; code <= 90; code++) {   // A = 65, Z = 90 in ASCII
 Why this works: On a real Singapore Pools ticket, numbers are always labelled "A.", "B.", "C." in order. By iterating the alphabet we capture them in the correct order, even if the OCR output has extra whitespace or noise.
 
 > ---
-> ### 🔑 Key Lines — `backend/routes/tickets.js` · Lines 181 – 186 · TOTO System Bet detection
+> ### 🔑 Key Lines — `backend/routes/tickets.js` · Lines 207 – 212 · TOTO System Bet detection
 >
 > **What it does:** Detects whether a TOTO ticket is a System Bet (e.g. "SYSTEM 7").
 > After detection, `expandSystemBet()` generates all C(n,6) combinations automatically:
@@ -1064,21 +1064,21 @@ Why this works: On a real Singapore Pools ticket, numbers are always labelled "A
 >
 > **How to navigate:**
 > 1. Open `backend/routes/tickets.js`
-> 2. Press `Ctrl+G` → type `181` → Enter
+> 2. Press `Ctrl+G` → type `207` → Enter
 >    — OR — search for `SYSTEM\s+`
 > ---
 
 ```js
-// ── Lines 181–186 ─────────────────────────────────────────────────────────────
-const sysMatch = upper.match(/SYSTEM\s+(\d+)/);
+// ── Lines 207–212 ─────────────────────────────────────────────────────────────
+const sysMatch = rawText.match(/System\s*(7|8|9|10|11|12)\b/i);
 if (sysMatch) {
-  betType    = 'System Bet';
-  systemSize = parseInt(sysMatch[1]);  // e.g. 7, 8, 9, 10, 11, or 12
+  systemSize = parseInt(sysMatch[1]);   // e.g. 7, 8, 9, 10, 11, or 12
+  betType    = `System ${systemSize}`;
 }
 ```
 
 > ---
-> ### 🔑 Key Lines — `backend/routes/tickets.js` · Lines 326 – 340 · OCR.Space API call (primary OCR)
+> ### 🔑 Key Lines — `backend/routes/tickets.js` · Lines 346 – 365 · OCR.Space API call (primary OCR)
 >
 > **What it does:** Sends the ticket image to the OCR.Space cloud API and receives raw text.
 > This is the primary OCR engine — faster and more accurate than local Tesseract.
@@ -1086,7 +1086,7 @@ if (sysMatch) {
 >
 > **How to navigate:**
 > 1. Open `backend/routes/tickets.js`
-> 2. Press `Ctrl+G` → type `326` → Enter
+> 2. Press `Ctrl+G` → type `346` → Enter
 >    — OR — search for `api.ocr.space`
 > ---
 
@@ -1126,7 +1126,7 @@ const rawText  = ocrData.ParsedResults?.[0]?.ParsedText?.trim() || '';
 > `'helloworld'` is OCR.Space's public demo key — 500 requests/month free. Set `OCRSPACE_API_KEY` in `backend/.env` with a registered key for higher limits. The engine tries Engine 2 first, falls back to Engine 1, then Tesseract.
 
 > ---
-> ### 🔑 Key Lines — `backend/routes/tickets.js` · Lines 396 – 400 · Tesseract fallback (local OCR)
+> ### 🔑 Key Lines — `backend/routes/tickets.js` · Lines 449 – 453 · Tesseract fallback (local OCR)
 >
 > **What it does:** If OCR.Space fails or returns empty text, the backend falls back
 > to Tesseract.js running locally on the server. No internet needed for this fallback.
@@ -1134,8 +1134,8 @@ const rawText  = ocrData.ParsedResults?.[0]?.ParsedText?.trim() || '';
 >
 > **How to navigate:**
 > 1. Open `backend/routes/tickets.js`
-> 2. Press `Ctrl+G` → type `396` → Enter
->    — OR — search for `Tesseract.recognize`
+> 2. Press `Ctrl+G` → type `449` → Enter
+>    — OR — search for `Tesseract.createWorker`
 > ---
 
 ```js
@@ -1148,7 +1148,7 @@ text = tesseractText;
 ```
 
 > ---
-> ### 🔑 Key Lines — `backend/routes/tickets.js` · Lines 460 – 475 · Firestore save
+> ### 🔑 Key Lines — `backend/routes/tickets.js` · Lines 514 – 530 · Firestore save
 >
 > **What it does:** Saves the fully parsed ticket as a Firestore document.
 > `drawType` and `resultStatus` are the two fields the cron job queries later.
@@ -1156,7 +1156,7 @@ text = tesseractText;
 >
 > **How to navigate:**
 > 1. Open `backend/routes/tickets.js`
-> 2. Press `Ctrl+G` → type `460` → Enter
+> 2. Press `Ctrl+G` → type `514` → Enter
 >    — OR — search for `db.collection('tickets').add`
 > ---
 
@@ -1176,7 +1176,7 @@ const docRef = await db.collection('tickets').add(ticketData);
 ```
 
 > ---
-> ### 🔑 Key Lines — `backend/routes/tickets.js` · Lines 480 – 503 · Immediate past-draw check
+> ### 🔑 Key Lines — `backend/routes/tickets.js` · Lines 534 – 555 · Immediate past-draw check
 >
 > **What it does:** If the ticket's draw date has already passed, the backend skips
 > the cron job entirely and checks the result right now, during the upload request.
@@ -1184,7 +1184,7 @@ const docRef = await db.collection('tickets').add(ticketData);
 >
 > **How to navigate:**
 > 1. Open `backend/routes/tickets.js`
-> 2. Press `Ctrl+G` → type `480` → Enter
+> 2. Press `Ctrl+G` → type `534` → Enter
 >    — OR — search for `if (drawType === 'past')`
 > ---
 
@@ -1614,7 +1614,7 @@ This is the outermost wrapper for the entire mobile app. It must include:
 
 > **Why SafeAreaProvider?** Android 10+ uses edge-to-edge display (content goes behind the navigation buttons at the bottom). `SafeAreaProvider` + `useSafeAreaInsets()` lets us add the correct amount of padding so buttons aren't hidden behind the phone's navigation bar.
 
-**File: `mobile-app/app/(tabs)/_layout.tsx`** — Tab bar
+**File: `mobile-app/app/tabs/_layout.tsx`** — Tab bar
 
 Defines the 3 main tabs: Home, Scan (Upload), History. The tab bar height is dynamic:
 ```tsx
@@ -1874,7 +1874,7 @@ taskkill /PID <PID> /F
 
 **Debug tip:** The backend logs the raw OCR text for every upload. Check the terminal for:
 ```
-[upload] OCR engine: ocr.space, text length: 312
+[upload] OCR engine: ocr.space-e2, text length: 312
 [upload] OCR raw text:
 ---
 4D
@@ -1902,9 +1902,9 @@ If a number appears in the raw text but not in the extracted result, the bug is 
 - App extracted: 8537, 9724, 9743 (3 numbers — **C. 5089 silently dropped**)
 
 **Why this happens:**
-When OCR.Space is unavailable and Tesseract runs instead, the HSV watermark removal step (`backend/routes/tickets.js` lines 365–385) identifies red/pink pixels and whites them out. The Singapore Pools watermark is a red "S" logo printed repeatedly across the ticket. If the "5089" on line C happens to sit on top of a dense patch of this watermark, some of the digits' pixels may also fall within the red hue range and get erased before Tesseract reads the image. The result is that Tesseract sees a blank or partial line C and produces no output for it.
+When OCR.Space is unavailable and Tesseract runs instead, the HSV watermark removal step (`backend/routes/tickets.js` lines 401–434) identifies red/pink pixels and whites them out. The Singapore Pools watermark is a red "S" logo printed repeatedly across the ticket. If the "5089" on line C happens to sit on top of a dense patch of this watermark, some of the digits' pixels may also fall within the red hue range and get erased before Tesseract reads the image. The result is that Tesseract sees a blank or partial line C and produces no output for it.
 
-**Root cause in the HSV filter (lines 381–384):**
+**Root cause in the HSV filter (line 434):**
 ```js
 // Any pixel with hue in 0–30° or 330–360° AND saturation > 0.18 is whitened.
 // Problem: ink printed over red watermark can be partially red-tinted too.
@@ -2463,7 +2463,7 @@ The user uploaded a valid ticket, got a result card back, but one of their numbe
 
 ### Why It Happens — Technical Detail
 
-**File to read first:** `backend/routes/tickets.js` lines 348–401
+**File to read first:** `backend/routes/tickets.js` lines 401–453
 
 The Tesseract fallback pipeline:
 1. Upscales the image to ≥ 2400px
@@ -2474,7 +2474,7 @@ The flaw is in step 2. The Singapore Pools red "S" watermark bleeds colour into 
 
 The specific threshold that causes the problem:
 ```js
-// backend/routes/tickets.js — lines 381–384
+// backend/routes/tickets.js — line 434
 if ((hue < 30 || hue > 330) && sat > 0.18) {
   rawPixels[i] = rawPixels[i + 1] = rawPixels[i + 2] = 255;  // white out pixel
 }
