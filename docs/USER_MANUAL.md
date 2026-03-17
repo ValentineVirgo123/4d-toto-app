@@ -335,7 +335,7 @@ Work through each step in order. Do not skip a step even if it seems already don
 ### Step 1 — Clone the repository
 
 ```bash
-git clone https://github.com/your-org/4d-toto-app.git
+git clone https://github.com/ValentineVirgo123/4d-toto-app.git
 cd 4d-toto-app
 ```
 
@@ -497,7 +497,30 @@ lsof -ti:3001 | xargs kill
 
 ---
 
-### Step 6 — Verify the web app starts
+### Step 6 — Create a test account
+
+The app requires a login. You need to create a Firebase Auth account before you can use the app.
+
+**Option A — via the web app sign-up screen (easiest):**
+1. Start the backend: `cd backend && node server.js`
+2. Start the web app: `cd web-app && npm run dev`
+3. Open `http://localhost:5173` — you will see the login/home page
+4. Click **Sign Up** (or **Get Started**) and register with any email + password
+5. Use these same credentials every time you log in
+
+> **Tip:** Use a throwaway email like `test@test.com` with password `test1234` for local development. This is only stored in your Firebase project — it is not a real account anywhere.
+
+**Option B — via Firebase Console (if sign-up is disabled in the app):**
+1. Go to [console.firebase.google.com](https://console.firebase.google.com) → your project
+2. Click **Authentication** → **Users** tab → **Add user**
+3. Enter any email + password and click **Add user**
+4. Use those credentials to log in to the web or mobile app
+
+**Verify you are logged in:** After signing in, the sidebar with Upload / History / Results / Predict / Settings should appear.
+
+---
+
+### Step 7 — Verify the web app starts
 
 ```bash
 cd web-app
@@ -520,7 +543,7 @@ Open `http://localhost:5173` in your browser. You should see the SGLottery login
 
 ---
 
-### Step 7 — Verify the mobile app starts (Expo Go)
+### Step 8 — Verify the mobile app starts (Expo Go)
 
 ```bash
 cd mobile-app
@@ -545,7 +568,7 @@ Open the **Expo Go** app on your phone, tap **Scan QR Code**, and point at the t
 
 ---
 
-### Step 8 — Connect mobile app to backend (ngrok or same WiFi)
+### Step 9 — Connect mobile app to backend (ngrok or same WiFi)
 
 The mobile app needs to reach the backend. There are two options:
 
@@ -703,6 +726,24 @@ npx expo start --dev-client
 ```
 
 Requires the development APK installed on the phone. The phone appears as a selectable device in the terminal.
+
+**How to build and install the development APK (one-time setup):**
+
+1. Log in to Expo:
+   ```bash
+   npx expo login
+   ```
+2. Build the development APK (takes 5–15 minutes on Expo's cloud servers):
+   ```bash
+   cd mobile-app
+   eas build --profile development --platform android
+   ```
+3. When the build finishes, Expo prints a download URL. Download the `.apk` file.
+4. Transfer the `.apk` to your Android phone (via USB, Google Drive, or email) and install it.
+   - On the phone: **Settings → Security → Allow installs from unknown sources** (exact path varies by Android version)
+5. Open the installed app — it shows a QR code scanner. Scan the QR code from `npx expo start --dev-client`.
+
+> **iOS:** Development builds on iOS require an Apple Developer account ($99/year). For iOS testing without a paid account, use Expo Go (push notifications will not work).
 
 ### Documentation (rebuild HTML + PDF)
 
@@ -1049,21 +1090,40 @@ if (sysMatch) {
 >    — OR — search for `api.ocr.space`
 > ---
 
-**OCR.Space API call (lines 326–340) — primary OCR engine:**
+**OCR.Space API call — primary OCR engine (actual code in `backend/routes/tickets.js`):**
 ```js
-const form = new FormData();
-form.append('file', buffer, { filename: 'ticket.jpg', contentType: 'image/jpeg' });
-form.append('apikey', 'helloworld');   // free public key
-form.append('language', 'eng');
-form.append('isOverlayRequired', 'false');
+// Image is sharpened + normalised first to improve watermark handling
+const ocrImageBuffer = await sharp(req.file.buffer)
+  .resize({ width: 1600, height: 1600, fit: 'inside', withoutEnlargement: true })
+  .sharpen({ sigma: 1.5 })
+  .normalise()
+  .jpeg({ quality: 92 })
+  .toBuffer();
 
-const response = await axios.post('https://api.ocr.space/parse/image', form, {
-  headers: form.getHeaders(),
-  timeout: 20000,
+const base64Image = `data:image/jpeg;base64,${ocrImageBuffer.toString('base64')}`;
+
+// Sent as base64 via URLSearchParams (no multipart, avoids form-data size limits)
+const body = new URLSearchParams({
+  base64Image,
+  language:          'eng',
+  OCREngine:         '2',        // Engine 2 = OCR.Space's own model (more accurate)
+  scale:             'true',
+  isTable:           'false',
+  detectOrientation: 'true',
 });
-const rawText = response.data.ParsedResults?.[0]?.ParsedText || '';
+
+const ocrRes = await fetch('https://api.ocr.space/parse/image', {
+  method:  'POST',
+  headers: {
+    apikey:         process.env.OCRSPACE_API_KEY || 'helloworld',
+    'Content-Type': 'application/x-www-form-urlencoded',
+  },
+  body: body.toString(),
+});
+const ocrData  = await ocrRes.json();
+const rawText  = ocrData.ParsedResults?.[0]?.ParsedText?.trim() || '';
 ```
-Note: `'helloworld'` is OCR.Space's public demo key. For production use, register for a free API key at ocr.space.
+> `'helloworld'` is OCR.Space's public demo key — 500 requests/month free. Set `OCRSPACE_API_KEY` in `backend/.env` with a registered key for higher limits. The engine tries Engine 2 first, falls back to Engine 1, then Tesseract.
 
 > ---
 > ### 🔑 Key Lines — `backend/routes/tickets.js` · Lines 396 – 400 · Tesseract fallback (local OCR)
@@ -1079,11 +1139,12 @@ Note: `'helloworld'` is OCR.Space's public demo key. For production use, registe
 > ---
 
 ```js
-// ── Lines 396–400 ─────────────────────────────────────────────────────────────
-const { data: { text } } = await Tesseract.recognize(processedBuffer, 'eng', {
-  logger: () => {},  // suppress verbose logging
-});
-rawText = text;
+// Actual Tesseract call (backend/routes/tickets.js)
+const worker = await Tesseract.createWorker('eng');
+await worker.setParameters({ tessedit_pageseg_mode: '3' }); // auto page segmentation
+const { data: { text: tesseractText } } = await worker.recognize(processedBuffer);
+await worker.terminate();
+text = tesseractText;
 ```
 
 > ---
@@ -1724,11 +1785,13 @@ For **4D**: finds the most common odd/even pattern across all digit positions (e
 For **TOTO**: analyses the mathematical profile of historical jackpot draws — the odd/even balance, the low (1–24) vs high (25–49) split, and the average sum. Generates 12 numbers that match the most common historical profile.
 
 ### How to Use the Predict Page
-1. Navigate to "Predict" in the sidebar/tab bar
-2. Select 4D or TOTO
-3. Choose how many past draws to analyse (default: 20)
-4. The app shows suggested numbers for each model
+1. Navigate to **Predict** in the sidebar (web) or tab bar (mobile)
+2. The page automatically runs all three models on both 4D and TOTO at once — no input needed
+3. Each model shows a predicted 4D number and a predicted TOTO set of 12 numbers
+4. A `confidenceScore` is shown (e.g. `0.12`) — this reflects model certainty, not win probability
 5. Use these as a starting point — combine with your own judgement
+
+> **Note for interns:** There is no "number of draws" selector in the UI. The backend always analyses the last 50 past 4D draws and last 100 past TOTO draws automatically. If you want to change this, edit the constants at the top of `backend/services/predictor.js`.
 
 ---
 
@@ -1960,8 +2023,45 @@ For real background push notifications, install the development APK.
 
 ### Security Practices
 - `serviceAccountKey.json` and `.env` are git-ignored and must never be committed
-- Firebase rules should be configured to restrict read/write to authenticated users
 - The OCR.Space API key is a public demo key — for production, register your own
+
+**Firebase Security Rules — restrict read/write to authenticated users only:**
+
+Go to [console.firebase.google.com](https://console.firebase.google.com) → your project → **Firestore Database** → **Rules** tab. Replace the default rules with:
+
+```js
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Tickets: only the owner can read/write their own tickets
+    match /tickets/{ticketId} {
+      allow read, write: if request.auth != null
+                         && request.auth.uid == resource.data.userId;
+      allow create: if request.auth != null;  // allow upload even before userId is set
+    }
+
+    // Draw results: anyone authenticated can read (public results), only backend writes
+    match /results_4d/{doc} {
+      allow read: if request.auth != null;
+      allow write: if false;  // only backend service account writes
+    }
+    match /results_toto/{doc} {
+      allow read: if request.auth != null;
+      allow write: if false;
+    }
+
+    // Push tokens: only the owner can register their own device
+    match /devices/{deviceId} {
+      allow read, write: if request.auth != null;
+    }
+  }
+}
+```
+
+Click **Publish**. Without these rules, Firestore defaults to open access (anyone can read/write all data).
+
+> **For local development:** You can temporarily use `allow read, write: if true;` to avoid auth errors while building features — but never leave this in production.
 
 ---
 
