@@ -1965,6 +1965,32 @@ height: 60 + insets.bottom,
 paddingBottom: insets.bottom + 6,
 ```
 
+### Mobile app fails to connect — "Failed to connect to port 8081"
+
+**Symptom:** Expo Go on your phone shows `Error Loading App: Failed to connect to /192.168.x.x (port 8081)`.
+
+**This is the most common setup issue on Windows.** Windows Firewall blocks port 8081 by default, so your phone cannot reach the Expo Metro bundler running on your computer.
+
+**Fix A — Add firewall rule (recommended, one-time):**
+
+Open **PowerShell as Administrator** (press `Win` → type `PowerShell` → right-click → Run as administrator) and run:
+```powershell
+netsh advfirewall firewall add rule name="Expo Metro 8081" dir=in action=allow protocol=TCP localport=8081
+```
+Then restart Expo (`npx expo start`) and scan the QR code again.
+
+**Fix B — Use tunnel mode (no admin rights needed):**
+```bash
+cd mobile-app
+npx expo start --tunnel
+```
+This routes through Expo's cloud servers — works across any network, no firewall change needed. Slightly slower initial load.
+
+**Fix C — Check same WiFi:**
+Your phone and computer must be on the **same WiFi network**. If your phone is on mobile data, the local IP `192.168.x.x` is unreachable regardless of firewall settings.
+
+---
+
 ### Push notifications not arriving (mobile)
 
 **Important:** Real push notifications require the development build (APK), not Expo Go.
