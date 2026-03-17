@@ -866,7 +866,9 @@ const processFile = useCallback(async (file) => {
 | `'past'` + not won | Red banner, official draw numbers shown |
 | `'future'` | Blue banner, timeline, "Enable Notifications" button |
 
-![OCR Result Card](screenshots/ss3-ocr-result.png)
+![Successful OCR scan — 5888 and 4392 correctly extracted, draw date 21/02/26, Ordinary bet](screenshots/ss3-ocr-result.png)
+
+*Above: a clean successful scan. The app correctly identified both numbers (A. 5888, B. 4392), the draw date, and bet type from a heavily watermarked Singapore Pools ticket.*
 
 > ---
 > ### 🔑 Secondary Logic — `web-app/src/pages/UploadPage.jsx` · Lines 8 – 22 · Prize rate table
@@ -1369,7 +1371,9 @@ function estimate4DDrawNumber(drawDateStr, baseDrawNo = 4522, baseDateStr = '15/
 
 Compares a ticket's numbers against an official draw result and returns the prize tier.
 
-![OCR Result — Win/Loss](screenshots/ss3-ocr-result.png)
+![Upload result card showing correctly parsed 4D ticket — 5888 and 4392, draw date 21/02/26](screenshots/ss3-ocr-result.png)
+
+*Above: the result card shown to the user after a successful scan. The serial number, game type, draw date, bet type, and all numbers are extracted correctly. After this point, the backend calls `compare4DTicket()` against the official draw result.*
 
 > ---
 > ### 🔑 Heart of the Logic — `backend/services/matcher.js` · Lines 49 – 82 · `compare4DTicket()`

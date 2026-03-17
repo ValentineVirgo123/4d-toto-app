@@ -434,10 +434,10 @@ ${buildCover()}
   const browser   = await puppeteer.launch({ headless: 'new', args: ['--no-sandbox'] });
   const page      = await browser.newPage();
 
-  await page.setDefaultNavigationTimeout(120000);
-  await page.setContent(html, { waitUntil: 'domcontentloaded', timeout: 120000 });
-  // Small wait for images to paint
-  await new Promise(r => setTimeout(r, 2000));
+  await page.setDefaultNavigationTimeout(180000);
+  await page.setContent(html, { waitUntil: 'domcontentloaded', timeout: 180000 });
+  // Wait for images to paint (manual has large screenshots)
+  await new Promise(r => setTimeout(r, 5000));
 
   await page.pdf({
     path:              PDF_FILE,
